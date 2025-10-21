@@ -197,7 +197,7 @@ function generateGPTPrompt(positions,castType){
       text+=`Rune ${i+1}: ${p.r.glyph} (${p.r.name}, ${p.face?'upright':'reversed'}), about ${distPerc}% from center — meaning: ${p.face?p.r.up:p.r.down}\n`;
     }
   });
-  text+=`\nPlease interpret this reading based on LearnReligions.com guidance. Thank you!\n`;
+  text+=`\nPlease interpret this reading based on LearnReligions.com guidance such that runes closest to the center (lowest percentage) have the most importance. Thank you!\n`;
   document.getElementById('gptPrompt').value=text;
 }
 
