@@ -1,16 +1,57 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <link rel="icon" type="image/png" href="../star.png">
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Rune Caster — Animated 3 or 9 Rune Cast</title>
+
 <style>
-:root{
-  --bg:#f3f0eb; --circle:#333; --rune:#fef9f3; --runeReversed:#ffe6e6; 
-  --ovalUpright:#555; --ovalReversed:#aa4444; --accent:#7c3aed; --muted:#6b7280;
-  --w:980px;
+:root {
+  --bg: radial-gradient(circle at center, #0b0020, #000010);
+  --circle: rgba(255, 255, 255, 0.18);
+  --rune: #eae4ff;
+  --runeReversed: #ffe0e0;
+  --ovalUpright: #54506a;
+  --ovalReversed: #9a4a6a;
+  --accent: #b66dff;
+  --muted: #b9b3d0;
+  --w: 980px;
 }
+
+body {
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  color: #f5f5f7;
+  display: flex;
+  justify-content: center;
+  padding: 28px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--w);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #e0c3ff;
+  font-weight: 400;
+}
+
+h2, h3 {
+  color: #e0c3ff;
+  font-weight: 400;
+}
+
 .home-bar {
   width: 100%;
   display: flex;
@@ -18,7 +59,7 @@
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .home-link {
@@ -44,131 +85,145 @@
   50% { transform: scale(1.15); opacity: 0.85; }
 }
 
-
-body{
-  font-family:Inter,system-ui,Segoe UI,Roboto,Arial; 
-  background:var(--bg); color:#111; display:flex; justify-content:center; padding:28px;
-}
-.wrap{width:100%; max-width:var(--w);}
-header{display:flex; align-items:center; gap:16px; margin-bottom:18px;}
-h1{margin:0; font-size:20px;}
-.controls{display:flex; gap:8px; align-items:center; margin-bottom:16px; flex-wrap:wrap;}
-.card{background:var(--bg); padding:16px; border-radius:12px; box-shadow:0 6px 24px rgba(0,0,0,0.1);}
-button{background:var(--accent); border:none; color:white; padding:10px 14px; border-radius:8px; cursor:pointer;}
-select{padding:8px;border-radius:8px;border:none;background:rgba(0,0,0,0.05); color:var(--muted);}
-.main{display:flex; flex-direction:column; gap:12px;}
-.canvas{min-height:420px; display:flex; align-items:center; justify-content:center; position:relative; background:#e6e1db; border-radius:12px;}
-.circle{width:420px;height:420px;border-radius:50%; background:var(--circle); position:relative; margin:auto;}
-.rune{position:absolute; transform-origin:center center; display:flex; align-items:center; justify-content:center;}
-.rune-symbol{font-size:22px; color:var(--rune); position:relative; z-index:1;}
-.rune-oval{position:absolute; border-radius:50%; z-index:0;}
-.resultsList{}
-.summary{margin-top:12px;}
-.summary h3{margin:0 0 8px 0;}
-.rune-row{display:flex; flex-direction:column; gap:4px; padding:8px; border-radius:8px; background:rgba(0,0,0,0.03); margin-bottom:8px;}
-textarea{width:100%; min-height:140px; padding:10px; border-radius:8px; border:1px solid #ccc; background:#fff; color:#111;}
-.muted{color:var(--muted); font-size:13px;}
-.actions{display:flex; gap:8px; margin-top:8px;}
-.small{font-size:13px; padding:8px 10px;}
-.meta{font-size:12px; color:var(--muted); margin-top:8px;}
-.copyok{color:green;}
-
-/* === THEME-ONLY OVERRIDES (paste at end of current <style>) === */
-:root{
-  /* Dark cosmic bg + lavender accents to match homepage */
-  --bg: radial-gradient(circle at center, #0b0020, #000010);
-  --circle: rgba(255,255,255,0.18);
-  --rune: #eae4ff;
-  --runeReversed: #ffe0e0;
-  --ovalUpright: #54506a;     /* soft gray–purple */
-  --ovalReversed: #9a4a6a;    /* muted rose–plum */
-  --accent: #b66dff;          /* homepage accent family */
-  --muted: #b9b3d0;
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
-/* Body & text */
-body{
-  background: var(--bg);      /* was a flat color; now the radial gradient */
-  color: #f5f5f7;
+.card {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
 }
 
-/* Headings */
-h1, h2, h3{
-  color: #e0c3ff;             /* lavender like homepage title */
-  font-weight: 400;
-}
-
-/* Cards/panels */
-.card{
-  background: rgba(255,255,255,0.06);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.45);
-}
-
-/* Canvas area */
-.canvas{
-  background: rgba(255,255,255,0.05);
-}
-
-/* Circle + runes */
-.circle{
-  background: var(--circle);
-}
-.rune-symbol{
-  color: var(--rune);          /* brighter on dark bg */
-}
-
-/* Controls */
-button{
-  background: linear-gradient(135deg, #b66dff, #7e5cff); /* same family as homepage */
+button {
+  background: linear-gradient(135deg, #b66dff, #7e5cff);
+  border: none;
   color: #fff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
 }
-select{
-  background: rgba(255,255,255,0.08);
+
+select {
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
   color: #e6e1ef;
 }
 
-/* Subtle text */
-.muted, .meta{
-  color: var(--muted);
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-/* Results rows */
-.rune-row{
-  background: rgba(255,255,255,0.05);
-  border-radius: 8px;
+.canvas {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
 }
 
-/* Textarea */
-textarea{
-  background: rgba(255,255,255,0.05);
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.1);
+.circle {
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: var(--circle);
+  position: relative;
+  margin: auto;
 }
 
-/* Optional: if you want to REMOVE icon glow/motion (not required for 'no glowing text') */
-/*
-.home-icon{ animation: none !important; filter: none !important; }
-*/
+.rune {
+  position: absolute;
+  transform-origin: center center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-/* === Face-down rune styling === */
+.rune-symbol {
+  font-size: 22px;
+  color: var(--rune);
+  position: relative;
+  z-index: 1;
+}
+
+.rune-oval {
+  position: absolute;
+  border-radius: 50%;
+  z-index: 0;
+}
+
 .rune-oval.facedown {
   background: repeating-linear-gradient(
     45deg,
-    rgba(255,255,255,0.08),
-    rgba(255,255,255,0.08) 4px,
-    rgba(255,255,255,0.02) 4px,
-    rgba(255,255,255,0.02) 8px
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.08) 4px,
+    rgba(255, 255, 255, 0.02) 4px,
+    rgba(255, 255, 255, 0.02) 8px
   );
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: inset 0 0 8px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4);
 }
 
+.resultsList {}
+.summary { margin-top: 12px; }
+.summary h3 { margin: 0 0 8px 0; }
 
+.rune-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  margin-bottom: 8px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.small {
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+.meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
 </style>
 </head>
+
 <body>
-
-
 <div class="wrap">
   <div class="home-bar">
     <a href="../index.html" class="home-link">
@@ -179,254 +234,276 @@ textarea{
 
   <header>
     <h1>Rune Caster — Animated 3 or 9 Rune Cast</h1>
+    <div class="muted">GPT prompt generator included.</div>
+  </header>
 
+  <div class="card controls">
+    <label><strong>Cast size:</strong></label>
+    <select id="castSize">
+      <option value="3">3 Runes</option>
+      <option value="9" selected>9 Runes</option>
+    </select>
+    <button id="castBtn">Cast Runes</button>
+    <div class="meta">Method inspired by LearnReligions.com: upright vs reversed and proximity to center indicate importance.</div>
+  </div>
 
-<div class="muted">GPT prompt generator included.</div>
-</header>
+  <div class="main">
+    <div class="card canvas">
+      <div class="circle" id="circleArea" aria-hidden="true"></div>
+    </div>
 
-<div class="card controls">
-<label><strong>Cast size:</strong></label>
-<select id="castSize"><option value="3">3 Runes</option><option value="9" selected>9 Runes</option></select>
-<button id="castBtn">Cast Runes</button>
-<div class="meta">Method inspired by LearnReligions.com: upright vs reversed and proximity to center indicate importance.</div>
+    <div class="card resultsList">
+      <div id="results" style="margin-top:10px;"></div>
+
+      <div class="summary" id="summaryBlock" style="display:none;">
+        <h3>Summary Interpretation</h3>
+        <div id="individualMeanings"></div>
+        <div id="overallReading" style="margin-top:8px; font-style:italic;"></div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <h3>GPT Interpretation Prompt</h3>
+        <div class="muted">Copy this and paste into ChatGPT. Feel free to describe your situation for a more personal reading.</div>
+        <textarea id="gptPrompt"></textarea>
+        <div class="actions">
+          <button id="copyPrompt" class="small">Copy Prompt</button>
+          <button id="resetBtn" class="small">Reset</button>
+        </div>
+        <div id="copyMsg" class="muted" style="margin-top:8px;"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="main" style="margin-top:12px;">
-<div class="card canvas">
-<div class="circle" id="circleArea" aria-hidden="true"></div>
-</div>
-
-<div class="card resultsList">
-<div id="results" style="margin-top:10px;"></div>
-<div class="summary" id="summaryBlock" style="display:none;">
-<h3>Summary Interpretation</h3>
-<div id="individualMeanings"></div>
-<div id="overallReading" style="margin-top:8px; font-style:italic;"></div>
-</div>
-
-<div style="margin-top:12px;">
-<h3>GPT Interpretation Prompt</h3>
-<div class="muted">Copy this and paste into ChatGPT. Feel free to describe your situation for a more personal reading.</div>
-<textarea id="gptPrompt"></textarea>
-<div class="actions">
-<button id="copyPrompt" class="small">Copy Prompt</button>
-<button id="resetBtn" class="small">Reset</button>
-</div>
-<div id="copyMsg" class="muted" style="margin-top:8px;"></div>
-</div>
-</div>
-</div>
-</div>
 <script>
 const RUNES = [
-  {glyph:"ᚠ", name:"Fehu", up:"Wealth, resources, productive energy, success", down:"Financial setback, misplaced priorities, hoarding"},
-  {glyph:"ᚢ", name:"Uruz", up:"Strength, vitality, courage, raw power", down:"Stagnation, recklessness, blocked energy"},
-  {glyph:"ᚦ", name:"Thurisaz", up:"Catalyst, challenge, protection, reactive force", down:"Dangerous impulse, misused force, obstacle"},
-  {glyph:"ᚨ", name:"Ansuz", up:"Communication, messages, insight, inspiration", down:"Miscommunication, deception, blocked insight"},
-  {glyph:"ᚱ", name:"Raidho", up:"Journey, movement, right rhythm and timing", down:"Delays, wrong direction, travel problems"},
-  {glyph:"ᚲ", name:"Kenaz", up:"Knowledge, creativity, clarity, a lightbulb moment", down:"Confusion, creative block, false illumination"},
-  {glyph:"ᚷ", name:"Gebo", up:"Gift, partnership, reciprocity, offering", down:"Unequal exchange, strings attached, exploitation"},
-  {glyph:"ᚹ", name:"Wunjo", up:"Joy, harmony, comfort, success", down:"Anxiety, disharmony, missed joy"},
-  {glyph:"ᚺ", name:"Hagalaz", up:"Change, disruption, necessary destruction", down:"Prolonged crisis, inability to use breakdown constructively"},
-  {glyph:"ᚾ", name:"Nauthiz", up:"Constraint, need, endurance, lesson through lack", down:"Stubborn resistance, prolonged hardship, fatalism"},
-  {glyph:"ᛁ", name:"Isa", up:"Stillness, clarity, pause, focus", down:"Stuckness, stagnation that harms progress"},
-  {glyph:"ᛃ", name:"Jera", up:"Harvest, reward for effort, natural cycle", down:"Delayed payoff, poor timing affecting results"},
-  {glyph:"ᛇ", name:"Eihwaz", up:"Defense, resilience, connection to deeper forces", down:"Defense turned rigid, fear, blocked transformation"},
-  {glyph:"ᛈ", name:"Perthro", up:"Mystery, chance, hidden things, potential", down:"Secret uncovered in harmful way, luck failing"},
-  {glyph:"ᛉ", name:"Algiz", up:"Protection, boundary, higher support", down:"Vulnerability, boundary breach, misplaced trust"},
-  {glyph:"ᛋ", name:"Sowilo", up:"Success, guidance, clear will", down:"Pyrrhic victory, ego-driven aim, losing direction"},
-  {glyph:"ᛏ", name:"Tiwaz", up:"Justice, duty, honor, victory through right action", down:"Rigidity, injustice, losing cause through blind duty"},
-  {glyph:"ᛒ", name:"Berkano", up:"Growth, fertility, new beginnings, nurture", down:"Stalled growth, blocked birth"},
-  {glyph:"ᛖ", name:"Ehwaz", up:"Movement, partnership, right cooperation", down:"Breakdown in trust, betrayal in partnership"},
-  {glyph:"ᛗ", name:"Mannaz", up:"Self, community, cooperation, intelligence", down:"Isolation, self-doubt, social friction"},
-  {glyph:"ᛚ", name:"Laguz", up:"Flow, intuition, water-energy, emotions", down:"Emotional overwhelm, ignoring intuition"},
-  {glyph:"ᛜ", name:"Inguz", up:"Potential, fruition, inner seed, new project ready", down:"Blocked potential, wasted energy, stalling"},
-  {glyph:"ᛞ", name:"Dagaz", up:"Breakthrough, dawn, major shift, clarity", down:"Confusion about change, false dawn, delayed awakening"},
-  {glyph:"ᛟ", name:"Othala", up:"Heritage, home, stable inheritance, legacy", down:"Toxic inheritance, stuck traditions, property loss"}
+  {glyph:"ᚠ",name:"Fehu",up:"Wealth, resources, productive energy, success",down:"Financial setback, misplaced priorities, hoarding"},
+  {glyph:"ᚢ",name:"Uruz",up:"Strength, vitality, courage, raw power",down:"Stagnation, recklessness, blocked energy"},
+  {glyph:"ᚦ",name:"Thurisaz",up:"Catalyst, challenge, protection, reactive force",down:"Dangerous impulse, misused force, obstacle"},
+  {glyph:"ᚨ",name:"Ansuz",up:"Communication, messages, insight, inspiration",down:"Miscommunication, deception, blocked insight"},
+  {glyph:"ᚱ",name:"Raidho",up:"Journey, movement, right rhythm and timing",down:"Delays, wrong direction, travel problems"},
+  {glyph:"ᚲ",name:"Kenaz",up:"Knowledge, creativity, clarity, a lightbulb moment",down:"Confusion, creative block, false illumination"},
+  {glyph:"ᚷ",name:"Gebo",up:"Gift, partnership, reciprocity, offering",down:"Unequal exchange, strings attached, exploitation"},
+  {glyph:"ᚹ",name:"Wunjo",up:"Joy, harmony, comfort, success",down:"Anxiety, disharmony, missed joy"},
+  {glyph:"ᚺ",name:"Hagalaz",up:"Change, disruption, necessary destruction",down:"Prolonged crisis, inability to use breakdown constructively"},
+  {glyph:"ᚾ",name:"Nauthiz",up:"Constraint, need, endurance, lesson through lack",down:"Stubborn resistance, prolonged hardship, fatalism"},
+  {glyph:"ᛁ",name:"Isa",up:"Stillness, clarity, pause, focus",down:"Stuckness, stagnation that harms progress"},
+  {glyph:"ᛃ",name:"Jera",up:"Harvest, reward for effort, natural cycle",down:"Delayed payoff, poor timing affecting results"},
+  {glyph:"ᛇ",name:"Eihwaz",up:"Defense, resilience, connection to deeper forces",down:"Defense turned rigid, fear, blocked transformation"},
+  {glyph:"ᛈ",name:"Perthro",up:"Mystery, chance, hidden things, potential",down:"Secret uncovered in harmful way, luck failing"},
+  {glyph:"ᛉ",name:"Algiz",up:"Protection, boundary, higher support",down:"Vulnerability, boundary breach, misplaced trust"},
+  {glyph:"ᛋ",name:"Sowilo",up:"Success, guidance, clear will",down:"Pyrrhic victory, ego-driven aim, losing direction"},
+  {glyph:"ᛏ",name:"Tiwaz",up:"Justice, duty, honor, victory through right action",down:"Rigidity, injustice, losing cause through blind duty"},
+  {glyph:"ᛒ",name:"Berkano",up:"Growth, fertility, new beginnings, nurture",down:"Stalled growth, blocked birth"},
+  {glyph:"ᛖ",name:"Ehwaz",up:"Movement, partnership, right cooperation",down:"Breakdown in trust, betrayal in partnership"},
+  {glyph:"ᛗ",name:"Mannaz",up:"Self, community, cooperation, intelligence",down:"Isolation, self-doubt, social friction"},
+  {glyph:"ᛚ",name:"Laguz",up:"Flow, intuition, water-energy, emotions",down:"Emotional overwhelm, ignoring intuition"},
+  {glyph:"ᛜ",name:"Inguz",up:"Potential, fruition, inner seed, new project ready",down:"Blocked potential, wasted energy, stalling"},
+  {glyph:"ᛞ",name:"Dagaz",up:"Breakthrough, dawn, major shift, clarity",down:"Confusion about change, false dawn, delayed awakening"},
+  {glyph:"ᛟ",name:"Othala",up:"Heritage, home, stable inheritance, legacy",down:"Toxic inheritance, stuck traditions, property loss"}
 ];
 
-function pickRunes(n){ const pool=[...RUNES]; const out=[]; for(let i=0;i<n;i++){ const idx=Math.floor(Math.random()*pool.length); out.push(pool.splice(idx,1)[0]); } return out; }
+function pickRunes(n) {
+  const pool = [...RUNES];
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const idx = Math.floor(Math.random() * pool.length);
+    out.push(pool.splice(idx, 1)[0]);
+  }
+  return out;
+}
 
-function generate9RunePositions(runes){
-  const circleR=210; const maxAttempts=30; const placed=[];
-  for(let r of runes){
-    let angle, rad, x, y, attempt=0;
-    do{
-      angle=Math.random()*2*Math.PI;
-      rad=Math.random()*circleR*0.7 + circleR*0.15;
-      x=Math.cos(angle)*rad;
-      y=Math.sin(angle)*rad;
+function generate9RunePositions(runes) {
+  const circleR = 210, maxAttempts = 30, placed = [];
+  for (let r of runes) {
+    let angle, rad, x, y, attempt = 0;
+    do {
+      angle = Math.random() * 2 * Math.PI;
+      rad = Math.random() * circleR * 0.7 + circleR * 0.15;
+      x = Math.cos(angle) * rad;
+      y = Math.sin(angle) * rad;
       attempt++;
-    }while(attempt<maxAttempts && placed.some(p=>Math.hypot(p.x-x,p.y-y)<50));
+    } while (attempt < maxAttempts && placed.some(p => Math.hypot(p.x - x, p.y - y) < 50));
     placed.push({
-      r:r,
-      x:x,
-      y:y,
-      visible:Math.random()<0.5, // ~50% face-up, 50% face-down
-      orientation:Math.random()<0.5 // upright or reversed
+      r,
+      x,
+      y,
+      visible: Math.random() < 0.5,
+      orientation: Math.random() < 0.5
     });
   }
   return placed;
 }
 
-function generate3RunePositions(runes){
-  const spacing=140;
-  const startX=-spacing;
-  return runes.map((r,i)=>({
-    r:r,x:startX+i*spacing,y:0,visible:true,orientation:true
-  }));
+function generate3RunePositions(runes) {
+  const spacing = 140;
+  const startX = -spacing;
+  return runes.map((r, i) => ({ r, x: startX + i * spacing, y: 0, visible: true, orientation: true }));
 }
 
-function renderCircle(svg,rings=5){
-  const c = svg.querySelector('.circle'); c.innerHTML="";
-  const radius=210;
-  for(let i=1;i<=rings;i++){
-    const r=document.createElement('div');
-    r.style.width=`${2*radius*i/rings}px`; r.style.height=`${2*radius*i/rings}px`;
-    r.style.border='1px solid rgba(255,255,255,0.2)'; r.style.borderRadius='50%';
-    r.style.position='absolute'; r.style.top=`${210 - radius*i/rings}px`; r.style.left=`${210 - radius*i/rings}px`;
+function renderCircle(svg, rings = 5) {
+  const c = svg.querySelector('.circle');
+  c.innerHTML = "";
+  const radius = 210;
+  for (let i = 1; i <= rings; i++) {
+    const r = document.createElement('div');
+    r.style.width = `${2 * radius * i / rings}px`;
+    r.style.height = `${2 * radius * i / rings}px`;
+    r.style.border = '1px solid rgba(255,255,255,0.2)';
+    r.style.borderRadius = '50%';
+    r.style.position = 'absolute';
+    r.style.top = `${210 - radius * i / rings}px`;
+    r.style.left = `${210 - radius * i / rings}px`;
     c.appendChild(r);
   }
 }
 
-function renderRunes(svg, positions, castType){
-  const c=svg.querySelector('.circle');
-  for(let i=0;i<positions.length;i++){
-    const p=positions[i];
-    const oval=document.createElement('div'); oval.className='rune-oval';
-    oval.style.width='48px'; oval.style.height='32px';
-    oval.style.left=`${210+p.x-24}px`; oval.style.top=`${210+p.y-16}px`;
-    if (!p.visible) {
-  oval.classList.add('facedown');
-  oval.style.backgroundColor = 'rgba(255,255,255,0.05)';
-} else {
-  oval.style.backgroundColor = p.orientation ? 'var(--ovalUpright)' : 'var(--ovalReversed)';
-}
+function renderRunes(svg, positions, castType) {
+  const c = svg.querySelector('.circle');
+  positions.forEach((p, i) => {
+    const oval = document.createElement('div');
+    oval.className = 'rune-oval';
+    oval.style.width = '48px';
+    oval.style.height = '32px';
+    oval.style.left = `${210 + p.x - 24}px`;
+    oval.style.top = `${210 + p.y - 16}px`;
 
-    oval.style.transform=`scale(0) rotate(0deg)`; oval.style.transition='transform 0.45s ease-out '+(i*0.1)+'s';
+    if (!p.visible) {
+      oval.classList.add('facedown');
+      oval.style.backgroundColor = 'rgba(255,255,255,0.05)';
+    } else {
+      oval.style.backgroundColor = p.orientation ? 'var(--ovalUpright)' : 'var(--ovalReversed)';
+    }
+
+    oval.style.transform = `scale(0) rotate(0deg)`;
+    oval.style.transition = `transform 0.45s ease-out ${i * 0.1}s`;
     c.appendChild(oval);
 
-    const runeDiv=document.createElement('div'); runeDiv.className='rune';
-    runeDiv.style.left=`${210+p.x}px`; runeDiv.style.top=`${210+p.y}px`;
-    runeDiv.style.transform=`translate(-50%,-50%) scale(0) rotate(0deg)`; runeDiv.style.transition='transform 0.45s ease-out '+(i*0.1)+'s';
-    const sym=document.createElement('div'); sym.className='rune-symbol';
+    const runeDiv = document.createElement('div');
+    runeDiv.className = 'rune';
+    runeDiv.style.left = `${210 + p.x}px`;
+    runeDiv.style.top = `${210 + p.y}px`;
+    runeDiv.style.transform = `translate(-50%,-50%) scale(0) rotate(0deg)`;
+    runeDiv.style.transition = `transform 0.45s ease-out ${i * 0.1}s`;
+
+    const sym = document.createElement('div');
+    sym.className = 'rune-symbol';
     sym.innerText = p.visible ? p.r.glyph : "";
-    runeDiv.appendChild(sym); c.appendChild(runeDiv);
-    setTimeout(()=>{
-      const angle=castType==='9'?Math.random()*360:0;
-      oval.style.transform=`scale(1) rotate(${angle}deg)`;
-      runeDiv.style.transform=`translate(-50%,-50%) scale(1) rotate(${angle/6}deg)`;
-    },50);
-  }
+    runeDiv.appendChild(sym);
+    c.appendChild(runeDiv);
+
+    setTimeout(() => {
+      const angle = castType === '9' ? Math.random() * 360 : 0;
+      oval.style.transform = `scale(1) rotate(${angle}deg)`;
+      runeDiv.style.transform = `translate(-50%,-50%) scale(1) rotate(${angle / 6}deg)`;
+    }, 50);
+  });
 }
 
 function renderResults(positions, castType) {
   const resultsDiv = document.getElementById("results");
   resultsDiv.innerHTML = "";
 
-  // Sort by proximity to center
-  const sorted = (castType === "9")
+  const sorted = castType === "9"
     ? positions.slice().sort((a, b) => Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y))
     : positions;
 
   let hiddenCount = 0;
 
   sorted.forEach((p, i) => {
-    if (!p.visible) {
-      hiddenCount++;
-      return; // skip hidden ones in text output
+    if (castType === "3") {
+      const labels = ["Summary / Overview", "Challenge / Obstacle", "Action / Course of Action"];
+      const div = document.createElement("div");
+      div.className = "rune-row";
+      div.innerHTML = `<strong>${labels[i]}:</strong> ${p.r.name}<br><em>${p.r.up}</em>`;
+      resultsDiv.appendChild(div);
+    } else {
+      if (!p.visible) {
+        hiddenCount++;
+        return;
+      }
+      const div = document.createElement("div");
+      div.className = "rune-row";
+      const distPerc = (Math.hypot(p.x, p.y) / 210 * 100).toFixed(1);
+      const iconColor = p.orientation ? "🟢" : "🔴";
+      const orientLabel = p.orientation ? "upright" : "reversed";
+      const desc = p.orientation ? p.r.up : p.r.down;
+
+      div.innerHTML = `
+        <strong>Rune ${i + 1}:</strong> ${iconColor} ${p.r.name}<br>
+        <span class="muted">${distPerc}% from center • ${iconColor} ${orientLabel} • ☀️ face-up</span><br>
+        <em>${desc}</em>
+      `;
+      resultsDiv.appendChild(div);
     }
-
-    const div = document.createElement("div");
-    div.className = "rune-row";
-
-    const distPerc = (Math.hypot(p.x, p.y) / 210 * 100).toFixed(1);
-
-    // Choose symbols and color
-    const iconColor = p.orientation ? "🟢" : "🔴";
-    const orientLabel = p.orientation ? "upright" : "reversed";
-    const desc = p.orientation ? p.r.up : p.r.down;
-
-    div.innerHTML = `
-      <strong>Rune ${i + 1}:</strong> ${iconColor} ${p.r.name}<br>
-      <span class="muted">${distPerc}% from center • ${iconColor} ${orientLabel} • ☀️ face-up</span><br>
-      <em>${desc}</em>
-    `;
-
-    resultsDiv.appendChild(div);
   });
 
-  // Add summary line for hidden runes
-  if (hiddenCount > 0) {
+  if (castType === "9" && hiddenCount > 0) {
     const summary = document.createElement("div");
     summary.className = "rune-row muted";
-    summary.innerHTML = `
-      🌑 The remaining ${hiddenCount} rune${hiddenCount > 1 ? "s were" : " was"} face-down — hidden influences beyond direct awareness.
-    `;
+    summary.innerHTML = `🌑 The remaining ${hiddenCount} rune${hiddenCount > 1 ? "s were" : " was"} face-down — hidden influences beyond direct awareness.`;
     resultsDiv.appendChild(summary);
   }
 
   document.getElementById("summaryBlock").style.display = "block";
 }
 
-
-
 function generateGPTPrompt(positions, castType) {
-  let sorted = (castType === "9")
+  const sorted = castType === "9"
     ? positions.slice().sort((a, b) => Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y))
     : positions;
 
-  let text = `Hi ChatGPT! My situation is [type here].\n`;
-  text += `I just did a ${castType}-rune casting. Here are the visible results:\n`;
+  let text = `Hi ChatGPT! My situation is [type here].\nI just did a ${castType}-rune casting.Here are the results:\n`;
 
-  let hiddenCount = 0;
-
-  sorted.forEach((p, i) => {
-    const distPerc = (Math.hypot(p.x, p.y) / 210 * 100).toFixed(1);
-    if (!p.visible) {
-      hiddenCount++;
-      return; // skip listing hidden runes
+  if (castType === "3") {
+    const labels = ["Summary / Overview", "Challenge / Obstacle", "Action / Course of Action"];
+    sorted.forEach((p, i) => {
+      text += `${labels[i]}: ${p.r.glyph} (${p.r.name}) — meaning: ${p.r.up}\n`;
+    });
+  } else {
+    let hiddenCount = 0;
+    sorted.forEach((p, i) => {
+      if (!p.visible) {
+        hiddenCount++;
+        return;
+      }
+      const distPerc = (Math.hypot(p.x, p.y) / 210 * 100).toFixed(1);
+      text += `Rune ${i + 1}: ${p.r.glyph} (${p.r.name}, ${p.orientation ? "upright" : "reversed"}), about ${distPerc}% from center — meaning: ${p.orientation ? p.r.up : p.r.down}\n`;
+    });
+    if (hiddenCount > 0) {
+      text += `\nThe remaining ${hiddenCount} rune${hiddenCount > 1 ? "s were" : " was"} face-down, representing hidden or unconscious influences.\n`;
     }
-
-    text += `Rune ${i + 1}: ${p.r.glyph} (${p.r.name}, ${p.orientation ? "upright" : "reversed"}), `;
-    text += `about ${distPerc}% from center — meaning: ${p.orientation ? p.r.up : p.r.down}\n`;
-  });
-
-  if (hiddenCount > 0) {
-    text += `\nThe remaining ${hiddenCount} rune${hiddenCount > 1 ? "s were" : " was"} face-down, representing hidden or unconscious influences.\n`;
   }
 
-  text += `\nPlease interpret this reading based on LearnReligions.com guidance, emphasizing that runes closer to the center hold greater importance. Thank you!\n`;
-
+  text += `\nPlease interpret this reading based on LearnReligions.com guidance. Thank you!\n`;
   document.getElementById("gptPrompt").value = text;
 }
 
-
-document.getElementById('castBtn').addEventListener('click',()=>{
-  const size=document.getElementById('castSize').value;
-  const castType=size==='3'?'3':'9';
-  const runes=pickRunes(castType==='3'?3:9);
-  const positions=castType==='3'?generate3RunePositions(runes):generate9RunePositions(runes);
-  renderCircle(document.querySelector('.canvas'),5);
-  renderRunes(document.querySelector('.canvas'),positions,castType);
-  renderResults(positions,castType);
-  generateGPTPrompt(positions,castType);
+document.getElementById('castBtn').addEventListener('click', () => {
+  const size = document.getElementById('castSize').value;
+  const castType = size === '3' ? '3' : '9';
+  const runes = pickRunes(castType === '3' ? 3 : 9);
+  const positions = castType === '3' ? generate3RunePositions(runes) : generate9RunePositions(runes);
+  renderCircle(document.querySelector('.canvas'), 5);
+  renderRunes(document.querySelector('.canvas'), positions, castType);
+  renderResults(positions, castType);
+  generateGPTPrompt(positions, castType);
 });
 
-document.getElementById('copyPrompt').addEventListener('click',()=>{
-  const ta=document.getElementById('gptPrompt'); ta.select(); document.execCommand('copy');
-  document.getElementById('copyMsg').innerText='Prompt copied to clipboard!';
-  setTimeout(()=>{document.getElementById('copyMsg').innerText='';},2000);
+document.getElementById('copyPrompt').addEventListener('click', () => {
+  const ta = document.getElementById('gptPrompt');
+  ta.select();
+  document.execCommand('copy');
+  document.getElementById('copyMsg').innerText = 'Prompt copied to clipboard!';
+  setTimeout(() => { document.getElementById('copyMsg').innerText = ''; }, 2000);
 });
 
-document.getElementById('resetBtn').addEventListener('click',()=>{
-  document.querySelector('.circle').innerHTML='';
-  document.getElementById('results').innerHTML='';
-  document.getElementById('summaryBlock').style.display='none';
-  document.getElementById('gptPrompt').value='';
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.querySelector('.circle').innerHTML = '';
+  document.getElementById('results').innerHTML = '';
+  document.getElementById('summaryBlock').style.display = 'none';
+  document.getElementById('gptPrompt').value = '';
 });
 </script>
-
-
 </body>
 </html>
