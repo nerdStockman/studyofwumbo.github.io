@@ -36,8 +36,8 @@ h2 {
 
 /* Star and block icons */
 .animated-icon1 {
-  width: 180px;
-  height: 180px;
+  width: 100px;
+  height: 100px;
   animation: float 3s ease-in-out infinite;
 }
 
@@ -55,7 +55,7 @@ h2 {
 
 .block {
   border-radius: 20%;
-  margin-left: 30px; /* move it right */
+  margin-left: 0px; /* move it right */
   background: linear-gradient(135deg, #ffe066, #c48aff);
   filter: drop-shadow(0 0 20px #f7d75c);
 }
