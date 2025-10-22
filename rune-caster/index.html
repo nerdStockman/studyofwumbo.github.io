@@ -150,6 +150,19 @@ textarea{
 .home-icon{ animation: none !important; filter: none !important; }
 */
 
+/* === Face-down rune styling === */
+.rune-oval.facedown {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,0.08),
+    rgba(255,255,255,0.08) 4px,
+    rgba(255,255,255,0.02) 4px,
+    rgba(255,255,255,0.02) 8px
+  );
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.4);
+}
+
 
 </style>
 </head>
@@ -204,7 +217,6 @@ textarea{
 </div>
 </div>
 </div>
-
 <script>
 const RUNES = [
   {glyph:"ᚠ", name:"Fehu", up:"Wealth, resources, productive energy, success", down:"Financial setback, misplaced priorities, hoarding"},
@@ -233,7 +245,7 @@ const RUNES = [
   {glyph:"ᛟ", name:"Othala", up:"Heritage, home, stable inheritance, legacy", down:"Toxic inheritance, stuck traditions, property loss"}
 ];
 
-function pickRunes(n){ const pool=[...RUNES]; const out=[]; for(let i=0;i<n;i++){ const idx=Math.floor(Math.random()*pool.length); out.push(pool.splice(idx,1)[0]); } return out;}
+function pickRunes(n){ const pool=[...RUNES]; const out=[]; for(let i=0;i<n;i++){ const idx=Math.floor(Math.random()*pool.length); out.push(pool.splice(idx,1)[0]); } return out; }
 
 function generate9RunePositions(runes){
   const circleR=210; const maxAttempts=30; const placed=[];
@@ -246,7 +258,13 @@ function generate9RunePositions(runes){
       y=Math.sin(angle)*rad;
       attempt++;
     }while(attempt<maxAttempts && placed.some(p=>Math.hypot(p.x-x,p.y-y)<50));
-    placed.push({r:r,x:x,y:y,face:Math.random()<0.5});
+    placed.push({
+      r:r,
+      x:x,
+      y:y,
+      visible:Math.random()<0.5, // ~50% face-up, 50% face-down
+      orientation:Math.random()<0.5 // upright or reversed
+    });
   }
   return placed;
 }
@@ -254,7 +272,9 @@ function generate9RunePositions(runes){
 function generate3RunePositions(runes){
   const spacing=140;
   const startX=-spacing;
-  return runes.map((r,i)=>({r:r,x:startX+i*spacing,y:0,face:true}));
+  return runes.map((r,i)=>({
+    r:r,x:startX+i*spacing,y:0,visible:true,orientation:true
+  }));
 }
 
 function renderCircle(svg,rings=5){
@@ -276,55 +296,111 @@ function renderRunes(svg, positions, castType){
     const oval=document.createElement('div'); oval.className='rune-oval';
     oval.style.width='48px'; oval.style.height='32px';
     oval.style.left=`${210+p.x-24}px`; oval.style.top=`${210+p.y-16}px`;
-    oval.style.backgroundColor = p.face ? 'var(--ovalUpright)' : 'var(--ovalReversed)';
+    if (!p.visible) {
+  oval.classList.add('facedown');
+  oval.style.backgroundColor = 'rgba(255,255,255,0.05)';
+} else {
+  oval.style.backgroundColor = p.orientation ? 'var(--ovalUpright)' : 'var(--ovalReversed)';
+}
+
     oval.style.transform=`scale(0) rotate(0deg)`; oval.style.transition='transform 0.45s ease-out '+(i*0.1)+'s';
     c.appendChild(oval);
 
     const runeDiv=document.createElement('div'); runeDiv.className='rune';
     runeDiv.style.left=`${210+p.x}px`; runeDiv.style.top=`${210+p.y}px`;
     runeDiv.style.transform=`translate(-50%,-50%) scale(0) rotate(0deg)`; runeDiv.style.transition='transform 0.45s ease-out '+(i*0.1)+'s';
-    const sym=document.createElement('div'); sym.className='rune-symbol'; sym.innerText=p.r.glyph;
+    const sym=document.createElement('div'); sym.className='rune-symbol';
+    sym.innerText = p.visible ? p.r.glyph : "";
     runeDiv.appendChild(sym); c.appendChild(runeDiv);
-    setTimeout(()=>{ const angle=castType==='9'?Math.random()*360:0;
-      oval.style.transform=`scale(1) rotate(${angle}deg)`; runeDiv.style.transform=`translate(-50%,-50%) scale(1) rotate(${angle/6}deg)`; },50);
+    setTimeout(()=>{
+      const angle=castType==='9'?Math.random()*360:0;
+      oval.style.transform=`scale(1) rotate(${angle}deg)`;
+      runeDiv.style.transform=`translate(-50%,-50%) scale(1) rotate(${angle/6}deg)`;
+    },50);
   }
 }
 
-function renderResults(positions,castType){
-  const resultsDiv=document.getElementById('results'); resultsDiv.innerHTML="";
-  let sorted=(castType==='9')?positions.slice().sort((a,b)=>Math.hypot(a.x,a.y)-Math.hypot(b.x,b.y)):positions;
-  sorted.forEach((p,i)=>{
-    let label,extra='';
-    if(castType==='3'){
-      label=i===0?'Summary':i===1?'Challenge / Obstacle':'Action / Course of Action';
-    }else{
-      label=`Rune ${i+1}`;
-      const distPerc=(Math.hypot(p.x,p.y)/210*100).toFixed(1);
-      extra=` — ${distPerc}% from center`;
+function renderResults(positions, castType) {
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = "";
+
+  // Sort by proximity to center
+  const sorted = (castType === "9")
+    ? positions.slice().sort((a, b) => Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y))
+    : positions;
+
+  let hiddenCount = 0;
+
+  sorted.forEach((p, i) => {
+    if (!p.visible) {
+      hiddenCount++;
+      return; // skip hidden ones in text output
     }
-    const div=document.createElement('div'); div.className='rune-row';
-    const desc=(castType==='3')?p.r.up:(p.face?p.r.up:p.r.down);
-    div.innerHTML=`<strong>${label}:</strong> ${p.r.name}${castType==='9'?` (${p.face?'upright':'reversed'})`:''}${extra}<br><em>${desc}</em>`;
+
+    const div = document.createElement("div");
+    div.className = "rune-row";
+
+    const distPerc = (Math.hypot(p.x, p.y) / 210 * 100).toFixed(1);
+
+    // Choose symbols and color
+    const iconColor = p.orientation ? "🟢" : "🔴";
+    const orientLabel = p.orientation ? "upright" : "reversed";
+    const desc = p.orientation ? p.r.up : p.r.down;
+
+    div.innerHTML = `
+      <strong>Rune ${i + 1}:</strong> ${iconColor} ${p.r.name}<br>
+      <span class="muted">${distPerc}% from center • ${iconColor} ${orientLabel} • ☀️ face-up</span><br>
+      <em>${desc}</em>
+    `;
+
     resultsDiv.appendChild(div);
   });
-  document.getElementById('summaryBlock').style.display='block';
+
+  // Add summary line for hidden runes
+  if (hiddenCount > 0) {
+    const summary = document.createElement("div");
+    summary.className = "rune-row muted";
+    summary.innerHTML = `
+      🌑 The remaining ${hiddenCount} rune${hiddenCount > 1 ? "s were" : " was"} face-down — hidden influences beyond direct awareness.
+    `;
+    resultsDiv.appendChild(summary);
+  }
+
+  document.getElementById("summaryBlock").style.display = "block";
 }
 
-function generateGPTPrompt(positions,castType){
-  let sorted=(castType==='9')?positions.slice().sort((a,b)=>Math.hypot(a.x,a.y)-Math.hypot(b.x,b.y)):positions;
-  let text=`Hi ChatGPT! My situation is [type here].\nI just did a ${castType}-rune casting. Here are the results:\n`;
-  sorted.forEach((p,i)=>{
-    if(castType==='3'){
-      const label=i===0?'Summary / Overview':i===1?'Challenge / Obstacle':'Action / Course of Action';
-      text+=`${label}: ${p.r.glyph} (${p.r.name}) — meaning: ${p.r.up}\n`;
-    }else{
-      const distPerc=(Math.hypot(p.x,p.y)/210*100).toFixed(1);
-      text+=`Rune ${i+1}: ${p.r.glyph} (${p.r.name}, ${p.face?'upright':'reversed'}), about ${distPerc}% from center — meaning: ${p.face?p.r.up:p.r.down}\n`;
+
+
+function generateGPTPrompt(positions, castType) {
+  let sorted = (castType === "9")
+    ? positions.slice().sort((a, b) => Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y))
+    : positions;
+
+  let text = `Hi ChatGPT! My situation is [type here].\n`;
+  text += `I just did a ${castType}-rune casting. Here are the visible results:\n`;
+
+  let hiddenCount = 0;
+
+  sorted.forEach((p, i) => {
+    const distPerc = (Math.hypot(p.x, p.y) / 210 * 100).toFixed(1);
+    if (!p.visible) {
+      hiddenCount++;
+      return; // skip listing hidden runes
     }
+
+    text += `Rune ${i + 1}: ${p.r.glyph} (${p.r.name}, ${p.orientation ? "upright" : "reversed"}), `;
+    text += `about ${distPerc}% from center — meaning: ${p.orientation ? p.r.up : p.r.down}\n`;
   });
-  text+=`\nPlease interpret this reading based on LearnReligions.com guidance such that runes closest to the center (lowest percentage) have the most importance. Thank you!\n`;
-  document.getElementById('gptPrompt').value=text;
+
+  if (hiddenCount > 0) {
+    text += `\nThe remaining ${hiddenCount} rune${hiddenCount > 1 ? "s were" : " was"} face-down, representing hidden or unconscious influences.\n`;
+  }
+
+  text += `\nPlease interpret this reading based on LearnReligions.com guidance, emphasizing that runes closer to the center hold greater importance. Thank you!\n`;
+
+  document.getElementById("gptPrompt").value = text;
 }
+
 
 document.getElementById('castBtn').addEventListener('click',()=>{
   const size=document.getElementById('castSize').value;
@@ -350,5 +426,7 @@ document.getElementById('resetBtn').addEventListener('click',()=>{
   document.getElementById('gptPrompt').value='';
 });
 </script>
+
+
 </body>
 </html>
