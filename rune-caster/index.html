@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<link rel="icon" type="image/png" href="../star.png">
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Rune Caster — Animated 3 or 9 Rune Cast</title>
 <style>
@@ -10,6 +11,40 @@
   --ovalUpright:#555; --ovalReversed:#aa4444; --accent:#7c3aed; --muted:#6b7280;
   --w:980px;
 }
+.home-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.home-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  animation: pulseStar 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.8));
+  border-radius: 50%;
+}
+
+@keyframes pulseStar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+
 body{
   font-family:Inter,system-ui,Segoe UI,Roboto,Arial; 
   background:var(--bg); color:#111; display:flex; justify-content:center; padding:28px;
@@ -37,12 +72,102 @@ textarea{width:100%; min-height:140px; padding:10px; border-radius:8px; border:1
 .small{font-size:13px; padding:8px 10px;}
 .meta{font-size:12px; color:var(--muted); margin-top:8px;}
 .copyok{color:green;}
+
+/* === THEME-ONLY OVERRIDES (paste at end of current <style>) === */
+:root{
+  /* Dark cosmic bg + lavender accents to match homepage */
+  --bg: radial-gradient(circle at center, #0b0020, #000010);
+  --circle: rgba(255,255,255,0.18);
+  --rune: #eae4ff;
+  --runeReversed: #ffe0e0;
+  --ovalUpright: #54506a;     /* soft gray–purple */
+  --ovalReversed: #9a4a6a;    /* muted rose–plum */
+  --accent: #b66dff;          /* homepage accent family */
+  --muted: #b9b3d0;
+}
+
+/* Body & text */
+body{
+  background: var(--bg);      /* was a flat color; now the radial gradient */
+  color: #f5f5f7;
+}
+
+/* Headings */
+h1, h2, h3{
+  color: #e0c3ff;             /* lavender like homepage title */
+  font-weight: 400;
+}
+
+/* Cards/panels */
+.card{
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+}
+
+/* Canvas area */
+.canvas{
+  background: rgba(255,255,255,0.05);
+}
+
+/* Circle + runes */
+.circle{
+  background: var(--circle);
+}
+.rune-symbol{
+  color: var(--rune);          /* brighter on dark bg */
+}
+
+/* Controls */
+button{
+  background: linear-gradient(135deg, #b66dff, #7e5cff); /* same family as homepage */
+  color: #fff;
+}
+select{
+  background: rgba(255,255,255,0.08);
+  color: #e6e1ef;
+}
+
+/* Subtle text */
+.muted, .meta{
+  color: var(--muted);
+}
+
+/* Results rows */
+.rune-row{
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+/* Textarea */
+textarea{
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Optional: if you want to REMOVE icon glow/motion (not required for 'no glowing text') */
+/*
+.home-icon{ animation: none !important; filter: none !important; }
+*/
+
+
 </style>
 </head>
 <body>
+
+
 <div class="wrap">
-<header>
-<h1>Rune Caster — Animated 3 or 9 Rune Cast</h1>
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>Rune Caster — Animated 3 or 9 Rune Cast</h1>
+
+
 <div class="muted">GPT prompt generator included.</div>
 </header>
 
