@@ -187,7 +187,7 @@ function renderResults(positions,castType){
 
 function generateGPTPrompt(positions,castType){
   let sorted=(castType==='9')?positions.slice().sort((a,b)=>Math.hypot(a.x,a.y)-Math.hypot(b.x,b.y)):positions;
-  let text=`Hi ChatGPT! I just did a ${castType}-rune casting.\nMy situation is [type here]. Here are the results:\n`;
+  let text=`Hi ChatGPT! My situation is [type here].\nI just did a ${castType}-rune casting. Here are the results:\n`;
   sorted.forEach((p,i)=>{
     if(castType==='3'){
       const label=i===0?'Summary / Overview':i===1?'Challenge / Obstacle':'Action / Course of Action';
