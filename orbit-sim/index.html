@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/png" href="../star.png">
+<title>Orbital Proximity Simulator</title>
+
+<style>
+:root {
+  --bg: radial-gradient(circle at center, #0b0020, #000010);
+  --accent: #b66dff;
+  --muted: #b9b3d0;
+  --panel: rgba(255, 255, 255, 0.06);
+  --w: 980px;
+}
+
+body {
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  color: #f5f5f7;
+  display: flex;
+  justify-content: center;
+  padding: 28px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--w);
+}
+
+/* Home bar + title */
+.home-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.home-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  animation: pulseStar 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.8));
+  border-radius: 50%;
+}
+
+@keyframes pulseStar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #e0c3ff;
+  font-weight: 400;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Panels and controls */
+.card {
+  background: var(--panel);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  margin-bottom: 16px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: auto 220px auto;
+  row-gap: 0.6rem;
+  column-gap: 0.8rem;
+  align-items: center;
+}
+
+button {
+  background: linear-gradient(135deg, #b66dff, #7e5cff);
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+input[type=range] {
+  width: 200px;
+}
+
+.planetDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.yellowDot { background-color: #facc15; }
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#orbitCanvas, #plotCanvas {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  margin-bottom: 1rem;
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>Orbital Proximity Simulator</h1>
+    <div class="muted">Mean orbital distance visualization</div>
+  </header>
+
+  <div class="card controls">
+    <label for="speedSlider">Simulation speed:</label>
+    <input type="range" id="speedSlider" min="0.1" max="1" step="0.01" value="0.5">
+    <span id="speedValue">0.5 years/sec</span>
+
+    <div><span class="planetDot" style="background-color:#7dd3fc;"></span>Planet 1 distance:</div>
+    <div>1.00 AU</div>
+    <div></div>
+
+    <div><span class="planetDot yellowDot"></span><label for="radiusSlider">Planet 2 distance:</label></div>
+    <input type="range" id="radiusSlider" min="0.3" max="1.52" step="0.01" value="0.75">
+    <span id="radiusValue">0.75 AU</span>
+
+    <div>Presets:</div>
+    <div style="display:flex;gap:0.5rem;">
+      <button id="mercuryBtn">Mercury</button>
+      <button id="venusBtn">Venus</button>
+      <button id="marsBtn">Mars</button>
+    </div>
+    <div></div>
+  </div>
+
+  <div class="card canvas">
+    <canvas id="orbitCanvas" width="500" height="500"></canvas>
+    <canvas id="plotCanvas" width="500" height="200"></canvas>
+  </div>
+
+</div>
+
+<script>
+const orbitCanvas = document.getElementById('orbitCanvas');
+const ctx = orbitCanvas.getContext('2d');
+const plotCanvas = document.getElementById('plotCanvas');
+const ptx = plotCanvas.getContext('2d');
+
+// Controls
+const rSlider = document.getElementById('radiusSlider');
+const rValue = document.getElementById('radiusValue');
+const sSlider = document.getElementById('speedSlider');
+const sValue = document.getElementById('speedValue');
+
+let innerRadius = parseFloat(rSlider.value);
+let speedFactor = parseFloat(sSlider.value);
+
+// --- Utility: compute true mean distance (Planet 1 fixed, Planet 2 sampled N times)
+function computeTrueMeanDistance(r, samples = 30) {
+  let sum = 0;
+  for (let i = 0; i < samples; i++) {
+    const theta = (2 * Math.PI * i) / samples;
+    const dist = Math.sqrt(1 + r*r - 2*r*Math.cos(theta)); // in AU
+    sum += dist;
+  }
+  return sum / samples;
+}
+
+let trueMeanDist = computeTrueMeanDistance(innerRadius);
+
+// --- Button handlers ---
+document.getElementById('mercuryBtn').onclick = () => setRadius(0.387);
+document.getElementById('venusBtn').onclick   = () => setRadius(0.723);
+document.getElementById('marsBtn').onclick    = () => setRadius(1.524);
+
+rSlider.addEventListener('input', () => {
+  innerRadius = parseFloat(rSlider.value);
+  updateRadiusText();
+  trueMeanDist = computeTrueMeanDistance(innerRadius);
+  resetSim();
+});
+
+sSlider.addEventListener('input', () => {
+  speedFactor = parseFloat(sSlider.value);
+  sValue.textContent = `${speedFactor.toFixed(2)} years/sec`;
+});
+
+function setRadius(r) {
+  innerRadius = r;
+  rSlider.value = r;
+  updateRadiusText();
+  trueMeanDist = computeTrueMeanDistance(innerRadius);
+  resetSim();
+}
+
+function updateRadiusText() {
+  rValue.textContent = `${innerRadius.toFixed(2)} AU`;
+}
+
+// --- Simulation setup ---
+const AU = 200;
+const center = {x: orbitCanvas.width / 2, y: orbitCanvas.height / 2};
+let simYears = 0;
+let lastTimestamp = null;
+
+let distanceHistory = [];
+const maxPoints = 2000;
+
+function omega(r) { return 2 * Math.PI * Math.pow(r, -1.5); }
+
+function resetSim() {
+  simYears = 0;
+  lastTimestamp = null;
+  distanceHistory = [];
+}
+
+// --- Load star image for center ---
+const starImg = new Image();
+starImg.src = "../star.png";
+
+// --- Animation loop ---
+function animate(timestamp) {
+  if (!lastTimestamp) lastTimestamp = timestamp;
+  const elapsed = (timestamp - lastTimestamp) / 1000;
+  lastTimestamp = timestamp;
+
+  simYears += elapsed * speedFactor;
+
+  drawScene(timestamp / 1000); // pass real time (s) for pulsing
+  requestAnimationFrame(animate);
+}
+
+// --- Draw main scene ---
+function drawScene(realTime) {
+  ctx.clearRect(0, 0, orbitCanvas.width, orbitCanvas.height);
+
+  // Orbit rings
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, AU, 0, 2 * Math.PI);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(center.x, center.y, AU * innerRadius, 0, 2 * Math.PI);
+  ctx.stroke();
+
+  // Pulsing glow for center star
+  const pulse = 0.6 + 0.4 * Math.sin(realTime * 2.0);
+  ctx.shadowColor = `rgba(255, 223, 128, ${pulse})`;
+  ctx.shadowBlur = 25 * pulse;
+  const starSize = 32;
+
+  if (starImg.complete) {
+    ctx.drawImage(starImg, center.x - starSize / 2, center.y - starSize / 2, starSize, starSize);
+  } else {
+    ctx.fillStyle = '#ffe58a';
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, 6, 0, 2 * Math.PI);
+    ctx.fill();
+  }
+  ctx.shadowBlur = 0;
+
+  // Planet positions
+  const ω_outer = omega(1);
+  const ω_inner = omega(innerRadius);
+  const x_outer = center.x + AU * Math.cos(ω_outer * simYears);
+  const y_outer = center.y + AU * Math.sin(ω_outer * simYears);
+  const x_inner = center.x + AU * innerRadius * Math.cos(ω_inner * simYears);
+  const y_inner = center.y + AU * innerRadius * Math.sin(ω_inner * simYears);
+
+  // Connection line
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.beginPath();
+  ctx.moveTo(x_outer, y_outer);
+  ctx.lineTo(x_inner, y_inner);
+  ctx.stroke();
+
+  // Planet 1 (blue)
+  ctx.fillStyle = '#7dd3fc';
+  ctx.beginPath();
+  ctx.arc(x_outer, y_outer, 6, 0, 2 * Math.PI);
+  ctx.fill();
+
+  // Planet 2 (yellow)
+  ctx.fillStyle = '#facc15';
+  ctx.beginPath();
+  ctx.arc(x_inner, y_inner, 5, 0, 2 * Math.PI);
+  ctx.fill();
+
+  // Record distance for plot trace
+  const dx = x_outer - x_inner;
+  const dy = y_outer - y_inner;
+  const dist = Math.sqrt(dx * dx + dy * dy) / AU;
+  distanceHistory.push({ t: simYears, d: dist });
+  if (distanceHistory.length > maxPoints) distanceHistory.shift();
+
+  drawPlot();
+}
+
+// --- Distance plot ---
+function drawPlot() {
+  ptx.clearRect(0, 0, plotCanvas.width, plotCanvas.height);
+  if (distanceHistory.length < 2) return;
+
+  const windowYears = speedFactor * 8;
+  const tMax = simYears;
+  const tMin = tMax - windowYears;
+  const visible = distanceHistory.filter(p => p.t >= tMin);
+
+  const maxDist = 2.0;
+  const scaleY = plotCanvas.height / maxDist;
+  const scaleX = plotCanvas.width / windowYears;
+  const xFromT = t => (t - tMin) * scaleX;
+
+  // Axis
+  ptx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ptx.beginPath();
+  ptx.moveTo(0, plotCanvas.height - 1);
+  ptx.lineTo(plotCanvas.width, plotCanvas.height - 1);
+  ptx.stroke();
+
+  // Trace
+  ptx.strokeStyle = '#facc15';
+  ptx.beginPath();
+  visible.forEach((p, i) => {
+    const x = xFromT(p.t);
+    const y = plotCanvas.height - p.d * scaleY;
+    if (i === 0) ptx.moveTo(x, y);
+    else ptx.lineTo(x, y);
+  });
+  ptx.stroke();
+
+  // Mean line (true mean, not rolling)
+  const yMean = plotCanvas.height - trueMeanDist * scaleY;
+  ptx.strokeStyle = '#b66dff';
+  ptx.setLineDash([4, 4]);
+  ptx.beginPath();
+  ptx.moveTo(0, yMean);
+  ptx.lineTo(plotCanvas.width, yMean);
+  ptx.stroke();
+  ptx.setLineDash([]);
+
+  // Labels
+  ptx.font = '14px Inter';
+  ptx.fillStyle = '#e0c3ff';
+  ptx.textAlign = 'left';
+  ptx.fillText('Distance between Planet 1 and Planet 2', 10, 18);
+
+  ptx.font = '12px Inter';
+  ptx.fillStyle = '#b9b3d0';
+  ptx.fillText(`Mean distance ≈ ${trueMeanDist.toFixed(3)} AU`, 10, 35);
+}
+
+requestAnimationFrame(animate);
+</script>
+
+
+</body>
+</html>
