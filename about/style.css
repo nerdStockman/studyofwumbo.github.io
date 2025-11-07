@@ -1,0 +1,156 @@
+/* ---------------------------------------
+   Study of Wumbo — About Page (Matched)
+   --------------------------------------- */
+
+:root {
+  --accent: #b66dff;
+  --muted: #b9b3d0;
+  --panel: rgba(255, 255, 255, 0.06);
+}
+
+/* Maintain same page layout and background as reference */
+body {
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+  background: radial-gradient(circle at center, #0b0020, #000010);
+  color: #f5f5f7;
+  display: flex;
+  justify-content: center;
+  padding: 28px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 980px;
+}
+
+/* Home button identical to reference */
+.home-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.home-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  animation: pulseStar 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.8));
+  border-radius: 50%;
+}
+
+@keyframes pulseStar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+/* Header styling to match simulator */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #e0c3ff;
+  font-weight: 400;
+  text-align: center;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Card structure identical to simulator panels */
+.card {
+  background: var(--panel);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  margin-bottom: 16px;
+}
+
+/* Profile layout */
+.profile-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.profile-pic {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.4);
+}
+
+.profile-text {
+  flex: 1;
+  min-width: 250px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Video container */
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.caption {
+  text-align: center;
+  margin-top: 0.6rem;
+  font-style: italic;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Fade-in animation reused from reference */
+.fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 1.5s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

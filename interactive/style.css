@@ -1,0 +1,131 @@
+:root {
+  --bg: radial-gradient(circle at center, #0b0020, #000010);
+  --accent: #b66dff;
+  --muted: #b9b3d0;
+  --panel: rgba(255, 255, 255, 0.06);
+  --w: 980px;
+}
+
+/* Page base (matches reference aesthetic) */
+html, body {
+  height: 100%;
+}
+body {
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: #f5f5f7;
+  display: flex;
+  justify-content: center;
+  padding: 28px;
+  margin: 0;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--w);
+}
+
+/* Home bar (IDENTICAL sizing/animation to reference page) */
+.home-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.home-icon {
+  width: 32px;      /* exact match */
+  height: 32px;     /* exact match */
+  margin-right: 8px;
+  animation: pulseStar 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.8));
+  border-radius: 50%;
+}
+
+@keyframes pulseStar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.15); opacity: 0.85; }
+}
+
+/* Cards / panels */
+.card {
+  background: var(--panel);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  margin-bottom: 16px;
+}
+
+/* Section heading */
+.section-title {
+  color: var(--accent);
+  font-size: 18px;
+  margin: 0 0 12px 4px;
+}
+
+/* Split image + text buttons */
+.wumbo-button {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0 8px rgba(182, 109, 255, 0.25);
+}
+
+.wumbo-button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 14px rgba(182, 109, 255, 0.45);
+}
+
+.wumbo-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 0 10px rgba(182, 109, 255, 0.4);
+}
+
+.wumbo-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.wumbo-title {
+  color: #e0c3ff;
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.wumbo-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Subtle fade-in */
+.fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 0.9s ease-out forwards;
+}
+.delay-1 { animation-delay: 0.12s; }
+
+@keyframes fadeIn {
+  to { opacity: 1; transform: translateY(0); }
+}

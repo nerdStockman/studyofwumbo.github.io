@@ -1,0 +1,205 @@
+/* ------------------------------
+   STUDY OF WUMBO – Wealth Pages
+   Unified Orbit Sim Button Style
+   ------------------------------ */
+
+/* --- Base page layout --- */
+body {
+  background: #1b1528;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, Segoe UI, Roboto, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.wrap {
+  width: 900px;
+  margin: 0 auto;
+  padding-bottom: 60px;
+}
+
+/* --- Header + Home link --- */
+.home-bar {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.home-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+}
+
+.home-icon {
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+}
+
+header {
+  margin: 12px 0 18px 0;
+}
+
+h1 {
+  font-size: 1.8em;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+
+.muted {
+  opacity: 0.8;
+  font-size: 0.92em;
+}
+
+/* --- Card containers --- */
+.card {
+  background: #221b32;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+  margin-bottom: 14px;
+}
+
+/* --- Controls grid --- */
+.controls {
+  display: grid;
+  grid-template-columns: auto auto 1fr auto auto auto;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 6px;
+  font-size: 0.95em;
+}
+
+/* --- Color indicator boxes --- */
+.color-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+}
+
+/* --- Labels and totals --- */
+label {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.total-label {
+  font-weight: 600;
+}
+
+.total-span,
+.pct-span {
+  text-align: right;
+  min-width: 60px;
+}
+
+/* --- Sliders --- */
+input[type="range"] {
+  width: 100%;
+  accent-color: #b66dff;
+  cursor: pointer;
+}
+
+/* --- Text boxes --- */
+input[type="text"] {
+  width: 110px;
+  text-align: right;
+  background: #1c1630;
+  border: 1px solid #3a2f54;
+  border-radius: 6px;
+  color: #fff;
+  padding: 4px 6px;
+  font-family: inherit;
+  font-size: 0.95em;
+}
+
+/* --- Canvas --- */
+.canvas {
+  text-align: center;
+}
+
+/* --- Toggle card --- */
+.toggle-card {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mode-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mode-desc {
+  opacity: 0.85;
+  font-size: 0.9em;
+}
+
+/* --- Orbit Sim–style buttons --- */
+button {
+  background: linear-gradient(135deg, #b66dff, #7e5cff);
+  border: none;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0 8px rgba(182, 109, 255, 0.35);
+  min-width: 260px;
+  text-align: left;
+}
+
+button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(182, 109, 255, 0.55);
+}
+
+button:active {
+  transform: translateY(0);
+  opacity: 0.85;
+}
+
+/* --- Cyan active state (mode selector only) --- */
+.toggle-card .pink-btn.active {
+  border: 2px solid #00eaff;
+  box-shadow: 0 0 14px rgba(0, 234, 255, 0.9);
+  background: linear-gradient(135deg, #7e5cff, #b66dff);
+}
+
+/* --- Other buttons (Normalize/Actual) --- */
+.small-btn {
+  margin-right: 6px;
+}
+
+button + button {
+  margin-left: 6px;
+}
+
+/* --- Links --- */
+a {
+  color: #b66dff;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* --- Scrollbar (for long content, consistent with Wumbo style) --- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #3d2c68;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5e45a0;
+}

@@ -1,0 +1,151 @@
+:root {
+  --bg: radial-gradient(circle at center, #0b0020, #000010);
+  --accent: #b66dff;
+  --muted: #b9b3d0;
+  --panel: rgba(255, 255, 255, 0.06);
+  --w: 980px;
+}
+
+body {
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  color: #f5f5f7;
+  display: flex;
+  justify-content: center;
+  padding: 28px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--w);
+}
+
+/* Home bar + title */
+.home-bar {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.home-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  animation: pulseStar 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.8));
+  border-radius: 50%;
+}
+
+@keyframes pulseStar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #e0c3ff;
+  font-weight: 400;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Intro text */
+.intro-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+  text-align: justify;
+  margin-bottom: 20px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 1.5s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Panels and controls */
+.card {
+  background: var(--panel);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  margin-bottom: 16px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: auto 220px auto;
+  row-gap: 0.6rem;
+  column-gap: 0.8rem;
+  align-items: center;
+}
+
+button {
+  background: linear-gradient(135deg, #b66dff, #7e5cff);
+  border: none;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+input[type=range] {
+  width: 200px;
+}
+
+.planetDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+}
+.yellowDot { background-color: #facc15; }
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#orbitCanvas, #plotCanvas {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  margin-bottom: 1rem;
+}

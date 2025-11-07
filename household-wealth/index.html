@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/png" href="../star.png">
+  <title>US Household Wealth</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>US Household Wealth Distribution</h1>
+    <div class="muted">
+      Adjust the proportions to what you like. Click “Normalize” to set those proportions to total the actual US wealth in 2025, or click “Actual 2025” to see how our wealth is truly split.<br>
+      Source: <a href="https://www.federalreserve.gov/releases/z1/dataviz/dfa/distribute/chart/" target="_blank" style="color:#b66dff;">Federal Reserve Distribution Data</a>
+    </div>
+  </header>
+
+  <!-- Toggle Card -->
+<div class="card toggle-card">
+  <div class="mode-row">
+    <button id="federalBtn" class="pink-btn active">Federal Reserve Groupings</button>
+    <span class="muted mode-desc">Groupings assigned by the Federal Reserve.</span>
+  </div>
+  <div class="mode-row">
+    <button id="tomBtn" class="pink-btn">Tom’s Interpolated Groupings</button>
+    <span class="muted mode-desc">Federal Reserve groupings interpolated into 10 evenly spaced groupings.</span>
+  </div>
+</div>
+
+
+  <!-- Controls -->
+  <div class="card controls" id="controlsCard"></div>
+
+  <div class="card canvas">
+    <canvas id="wealthCanvas" width="900" height="430"></canvas>
+  </div>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

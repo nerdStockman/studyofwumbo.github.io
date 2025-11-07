@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mouse Trap Reactivity Sim</title>
+  <style>
+    body {
+      background-color: #1a1025;
+      color: #fffdc0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      height: 100vh;
+    }
+    h1 {
+      margin-bottom: 10px;
+      text-shadow: 0 0 8px #f0ff60;
+    }
+    canvas {
+      border: 2px solid #f0ff60;
+      background-color: #221b32;
+      margin-top: 10px;
+      aspect-ratio: 1 / 1;
+      width: 80vmin;
+      height: 80vmin;
+    }
+    .controls {
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+    }
+    input[type=range] {
+      width: 200px;
+    }
+    label {
+      color: #fffac8;
+    }
+    button {
+      background-color: #ff80ff;
+      color: #221b32;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    button:hover {
+      background-color: #f0ff60;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mouse Trap Reactivity Sim</h1>
+  <div class="controls">
+    <label><input type="checkbox" id="wallsToggle" checked /> Walls</label>
+    <label>Trap Grid Size: <span id="trapCountLabel">25</span></label>
+    <input type="range" id="trapSlider" min="2" max="10" step="1" value="5" />
+    <label>Trap Spacing (× size): <span id="spacingLabel">2.0</span></label>
+    <input type="range" id="spacingSlider" min="1.1" max="3" step="0.1" value="2.0" />
+    <button id="playBtn">Play</button>
+  </div>
+  <canvas id="simCanvas" width="800" height="800"></canvas>
+  <script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const trapSlider = document.getElementById('trapSlider');
+    const trapCountLabel = document.getElementById('trapCountLabel');
+    const spacingSlider = document.getElementById('spacingSlider');
+    const spacingLabel = document.getElementById('spacingLabel');
+    const wallsToggle = document.getElementById('wallsToggle');
+    const playBtn = document.getElementById('playBtn');
+
+    let gridN = parseInt(trapSlider.value);
+    let spacingFactor = parseFloat(spacingSlider.value);
+    let traps = [];
+    let balls = [];
+    let flashes = [];
+
+    const trapSize = 20;
+    const ballRadius = 10;
+    const g = 9.8;
+    const rz = 0.6;
+    const eWall = 0.7;
+    const drag = 0.01;
+    const vLaunch = 3.0;
+    const kick = 0.5;
+    const vzMinTrigger = 1.0;
+
+    const dt = 1 / 120;
+    const contactWindow = 0.02;
+
+    let wallBounds = { left: 0, right: canvas.width, top: 0, bottom: canvas.height };
+    let running = false;
+    let animationId = null;
+
+    // Audio setup (fixed click sound)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playClick() {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = 800;
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.08);
+    }
+
+    function initializeTraps() {
+      traps = [];
+      const spacing = trapSize * spacingFactor;
+      const totalSize = spacing * (gridN - 1);
+      const offsetX = (canvas.width - totalSize) / 2;
+      const offsetY = (canvas.height - totalSize) / 2;
+      for (let i = 0; i < gridN; i++) {
+        for (let j = 0; j < gridN; j++) {
+          traps.push({
+            x: offsetX + i * spacing,
+            y: offsetY + j * spacing,
+            armed: true,
+            size: trapSize
+          });
+        }
+      }
+
+      wallBounds.left = offsetX - spacing * 2;
+      wallBounds.right = offsetX + totalSize + spacing * 2;
+      wallBounds.top = offsetY - spacing * 2;
+      wallBounds.bottom = offsetY + totalSize + spacing * 2;
+
+      draw();
+    }
+
+    function resetSim() {
+      traps.forEach(t => t.armed = true);
+      balls = [];
+      flashes = [];
+
+      const centerX = (wallBounds.left + wallBounds.right) / 2;
+      const centerY = (wallBounds.top + wallBounds.bottom) / 2;
+
+      const maxRadius = Math.min(
+        (wallBounds.right - wallBounds.left) / 2 - ballRadius,
+        (wallBounds.bottom - wallBounds.top) / 2 - ballRadius
+      );
+      const radius = maxRadius * 0.95;
+
+      const angle = Math.random() * 2 * Math.PI;
+      const x = centerX + Math.cos(angle) * radius;
+      const y = centerY + Math.sin(angle) * radius;
+
+      const angleOffset = (Math.random() - 0.5) * (Math.PI / 9);
+      const aimAngle = angle + Math.PI + angleOffset;
+
+      const speed = 6;
+      const vx = speed * Math.cos(aimAngle);
+      const vy = speed * Math.sin(aimAngle);
+
+      balls.push({ x, y, vx, vy, z: 0, vz: 3, contactTimer: 0, active: true });
+    }
+
+    function triggerTrap(trap, ball) {
+      if (!trap.armed) return;
+      trap.armed = false;
+      const angle = Math.random() * 2 * Math.PI;
+      const vx = vLaunch * Math.cos(angle);
+      const vy = vLaunch * Math.sin(angle);
+      balls.push({ x: trap.x, y: trap.y, vx, vy, z: 0, vz: 3, contactTimer: 0, active: true });
+      const mag = Math.hypot(ball.vx, ball.vy);
+      if (mag > 0) {
+        ball.vx += kick * (ball.vx / mag);
+        ball.vy += kick * (ball.vy / mag);
+      }
+    }
+
+    function update() {
+      for (let ball of balls) {
+        // Apply gravity
+        ball.vz -= g * dt;
+        ball.z += ball.vz * dt;
+
+        // Bounce on floor
+        if (ball.z <= 0 && ball.vz < 0) {
+          playClick();
+          flashes.push({ x: ball.x, y: ball.y, radius: ballRadius * 2, alpha: 1 });
+          const vimp = -ball.vz;
+          if (vimp >= vzMinTrigger) {
+            ball.contactTimer = contactWindow;
+          }
+          ball.vz = vimp * rz;
+          ball.z = 0;
+        }
+
+        // Micro-bounce suppression AFTER bounce
+        if (ball.z < 0.5 && Math.abs(ball.vz) < 0.3) {
+          ball.z = 0;
+          ball.vz = 0;
+        }
+
+        // Motion and drag
+        ball.vx *= (1 - drag);
+        ball.vy *= (1 - drag);
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+
+        // Wall interactions
+        if (wallsToggle.checked) {
+          if (ball.x - ballRadius < wallBounds.left || ball.x + ballRadius > wallBounds.right) {
+            ball.vx *= -eWall;
+            playClick();
+            flashes.push({ x: ball.x, y: ball.y, radius: ballRadius * 2, alpha: 1 });
+            ball.x = Math.max(wallBounds.left + ballRadius, Math.min(wallBounds.right - ballRadius, ball.x));
+          }
+          if (ball.y - ballRadius < wallBounds.top || ball.y + ballRadius > wallBounds.bottom) {
+            ball.vy *= -eWall;
+            playClick();
+            flashes.push({ x: ball.x, y: ball.y, radius: ballRadius * 2, alpha: 1 });
+            ball.y = Math.max(wallBounds.top + ballRadius, Math.min(wallBounds.bottom - ballRadius, ball.y));
+          }
+        } else {
+          if (ball.x < wallBounds.left || ball.x > wallBounds.right || ball.y < wallBounds.top || ball.y > wallBounds.bottom) {
+            ball.dead = true;
+          }
+        }
+
+        // Trap interaction
+        if (ball.contactTimer > 0) {
+          for (let trap of traps) {
+            if (!trap.armed) continue;
+            const dx = ball.x - trap.x;
+            const dy = ball.y - trap.y;
+            const dist2 = dx * dx + dy * dy;
+            const thresh = ((trap.size / 2) + 15) ** 2;
+            if (dist2 < thresh) {
+              triggerTrap(trap, ball);
+              break;
+            }
+          }
+        }
+
+        const speed = Math.hypot(ball.vx, ball.vy) + Math.abs(ball.vz);
+        if (speed < 0.2) ball.active = false;
+      }
+
+      balls = balls.filter(b => !b.dead);
+
+      // Update flashes
+      for (let f of flashes) {
+        f.alpha -= 0.05;
+        f.radius += 0.5;
+      }
+      flashes = flashes.filter(f => f.alpha > 0);
+    }
+
+    function drawWalls() {
+      ctx.strokeStyle = '#f0ff60';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(wallBounds.left, wallBounds.top, wallBounds.right - wallBounds.left, wallBounds.bottom - wallBounds.top);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawWalls();
+
+      // draw flashes
+      for (let f of flashes) {
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.radius, 0, 2 * Math.PI);
+        ctx.strokeStyle = `rgba(240,255,96,${f.alpha * 0.5})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      for (let trap of traps) {
+        ctx.strokeStyle = trap.armed ? '#f0ff60' : '#777';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(trap.x - trap.size / 2, trap.y - trap.size / 2, trap.size, trap.size);
+
+        if (trap.armed) {
+          ctx.fillStyle = '#777';
+          ctx.beginPath();
+          ctx.arc(trap.x, trap.y, trap.size / 3, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+
+      for (let b of balls) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, ballRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = b.active ? '#ff80ff' : '#777';
+        ctx.fill();
+      }
+    }
+
+    function loop() {
+      if (!running) return;
+      update();
+      draw();
+      animationId = requestAnimationFrame(loop);
+    }
+
+    trapSlider.oninput = () => {
+      gridN = parseInt(trapSlider.value);
+      trapCountLabel.textContent = gridN * gridN;
+      initializeTraps();
+    };
+
+    spacingSlider.oninput = () => {
+      spacingFactor = parseFloat(spacingSlider.value);
+      spacingLabel.textContent = spacingFactor.toFixed(1);
+      initializeTraps();
+    };
+
+    wallsToggle.onchange = () => {
+      initializeTraps();
+    };
+
+    playBtn.onclick = () => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+      running = false;
+
+      initializeTraps();
+      resetSim();
+
+      running = true;
+      playBtn.textContent = 'Restart';
+      loop();
+    };
+
+    // Draw initial static grid on load
+    initializeTraps();
+  </script>
+</body>
+</html>
