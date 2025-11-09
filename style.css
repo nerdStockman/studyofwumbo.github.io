@@ -16,7 +16,9 @@ body {
   justify-content: center;
   margin-top: 60px;
   position: relative;
+  transform: translateX(-10px); /* shift entire header slightly left */
 }
+
 
 .star {
   width: 100px;
