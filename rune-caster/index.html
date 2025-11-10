@@ -220,6 +220,53 @@ textarea {
   color: var(--muted);
   margin-top: 8px;
 }
+
+/* --- Media Card (same style as 'In the Media' page) --- */
+.media-card .media-button {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #221b32;
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0 8px rgba(182, 109, 255, 0.25);
+}
+
+.media-card .media-button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 14px rgba(182, 109, 255, 0.45);
+}
+
+.media-card .media-logo {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 0 10px rgba(182, 109, 255, 0.4);
+}
+
+.media-card .media-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.media-card .media-title {
+  color: #e0c3ff;
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.media-card .media-subtitle {
+  color: #b9b3d0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 </style>
 </head>
 
@@ -236,6 +283,17 @@ textarea {
     <h1>Rune Caster — Animated 3 or 9 Rune Cast</h1>
     <div class="muted">GPT prompt generator included.</div>
   </header>
+  
+  <!-- Video Card -->
+  <div class="card media-card">
+    <a href="https://youtu.be/aA6YkcP42lw" target="_blank" class="media-button">
+      <img src="../images/runes.png" class="media-logo">
+      <div class="media-text">
+        <span class="media-title">Guide to using this page.</span>
+        <span class="media-subtitle">II'm not convinced there is anything mystical about casting runes, but I do think it's good to find new perspectives in life, and it was fun to build :) </span>
+      </div>
+    </a>
+  </div>
 
   <div class="card controls">
     <label><strong>Cast size:</strong></label>
