@@ -290,7 +290,7 @@ textarea {
       <img src="../images/runes.png" class="media-logo">
       <div class="media-text">
         <span class="media-title">Guide to using this page.</span>
-        <span class="media-subtitle">II'm not convinced there is anything mystical about casting runes, but I do think it's good to find new perspectives in life, and it was fun to build :) </span>
+        <span class="media-subtitle">I'm not convinced there is anything mystical about casting runes, but I do think it's good to find new perspectives in life, and it was fun to build :) </span>
       </div>
     </a>
   </div>
@@ -511,7 +511,7 @@ function generateGPTPrompt(positions, castType) {
     ? positions.slice().sort((a, b) => Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y))
     : positions;
 
-  let text = `Hi ChatGPT! My situation is [type here].\nI just did a ${castType}-rune casting.Here are the results:\n`;
+  let text = `Hi ChatGPT! My situation is [type here].\nI just did a ${castType}-rune casting. Here are the results:\n`;
 
   if (castType === "3") {
     const labels = ["Summary / Overview", "Challenge / Obstacle", "Action / Course of Action"];
