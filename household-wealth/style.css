@@ -253,3 +253,49 @@ a:hover {
   background: #00eaff;
   box-shadow: 0 0 8px #00eaff;
 }
+
+/* --- Media Card (same style as 'In the Media' page) --- */
+.media-card .media-button {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #221b32;
+  border-radius: 12px;
+  padding: 14px 18px;
+  text-decoration: none;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 0 8px rgba(182, 109, 255, 0.25);
+}
+
+.media-card .media-button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 14px rgba(182, 109, 255, 0.45);
+}
+
+.media-card .media-logo {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+  padding: 6px;
+  box-shadow: 0 0 10px rgba(182, 109, 255, 0.4);
+}
+
+.media-card .media-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.media-card .media-title {
+  color: #e0c3ff;
+  font-weight: 600;
+  font-size: 17px;
+}
+
+.media-card .media-subtitle {
+  color: #b9b3d0;
+  font-size: 14px;
+  line-height: 1.4;
+}
