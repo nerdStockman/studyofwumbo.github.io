@@ -166,7 +166,7 @@ a:hover { text-decoration: underline; }
 
   <div class="card intro-text fade-in">
     <p>
-      Percent comparisons depend on which value you treat as the starting point. Enter two numbers below to see how much Value 1 differs from Value 2, and how much Value 2 differs from Value 1. 
+      Percent comparisons depend on which value you treat as the original point. Enter two numbers below to see how much Value 1 differs from Value 2, and how much Value 2 differs from Value 1. 
       If you want a deeper walkthrough of this idea, check out this open source middle school math textbook: 
       <a href="https://bim.easyaccessmaterials.com/index.php?level=8.00" target="_blank">
         Grade 7 Math (Easy Access Materials)
@@ -192,14 +192,14 @@ a:hover { text-decoration: underline; }
   <div class="results">
     <div class="card result-card">
       <h2>If Value 1 is the New Value</h2>
-      <p class="subtitle">Using Value 2 as the starting value.</p>
+      <p class="subtitle">Using Value 2 as the original value.</p>
       <div id="forwardEquation" class="equation"></div>
       <p id="forwardSentence" class="sentence"></p>
     </div>
 
     <div class="card result-card">
       <h2>If Value 2 is the New Value</h2>
-      <p class="subtitle">Using Value 1 as the starting value.</p>
+      <p class="subtitle">Using Value 1 as the original value.</p>
       <div id="backwardEquation" class="equation"></div>
       <p id="backwardSentence" class="sentence"></p>
     </div>
@@ -207,7 +207,7 @@ a:hover { text-decoration: underline; }
 
   <div class="card">
     <p class="note">
-      Note: Percent change divides by the starting value, so a starting value of 0 does not produce a defined percent comparison.
+      Note: Percent change divides by the original value, so a original value of 0 does not produce a defined percent comparison.
     </p>
   </div>
 
@@ -252,7 +252,7 @@ function renderCard(options) {
   const percentChange = getPercentChange(newValue, oldValue);
 
   if (percentChange === null) {
-    equationElement.innerHTML = "Percent change is undefined when the starting value is 0.";
+    equationElement.innerHTML = "Percent change is undefined when the original value is 0.";
     sentenceElement.textContent = "";
     return;
   }
