@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/png" href="../star.png">
+<title>Percent Difference Calculator</title>
+<style>
+:root {
+  --bg: radial-gradient(circle at center, #0b0020, #000010);
+  --accent: #b66dff;
+  --muted: #b9b3d0;
+  --panel: rgba(255, 255, 255, 0.06);
+  --w: 980px;
+  --pink: #ff8bd2;
+  --pink-bg: rgba(255, 139, 210, 0.18);
+  --yellow: #facc15;
+  --yellow-bg: rgba(250, 204, 21, 0.18);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial;
+  background: var(--bg);
+  color: #f5f5f7;
+  display: flex;
+  justify-content: center;
+  padding: 28px;
+}
+
+.wrap { width: 100%; max-width: var(--w); }
+
+.home-bar {
+  width: 100%; display: flex; justify-content: flex-start; align-items: center;
+  margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.home-link {
+  display: inline-flex; align-items: center; text-decoration: none;
+  color: var(--accent); font-weight: 600; font-size: 16px;
+}
+
+.home-icon {
+  width: 32px; height: 32px; margin-right: 8px;
+  animation: pulseStar 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.8)); border-radius: 50%;
+}
+
+@keyframes pulseStar {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+header { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
+
+h1 { margin: 0; font-size: 20px; color: #e0c3ff; font-weight: 400; }
+
+h2 { margin: 0 0 6px; color: #e0c3ff; font-size: 17px; font-weight: 600; }
+
+.muted { color: var(--muted); font-size: 13px; }
+
+.intro-text {
+  font-size: 15px; line-height: 1.6; color: var(--muted);
+  text-align: justify; margin-bottom: 20px;
+  opacity: 0; transform: translateY(10px);
+  animation: fadeIn 1.5s ease-in forwards;
+}
+
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+.card {
+  background: var(--panel); padding: 16px; border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45); margin-bottom: 16px;
+}
+
+.inputs {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px; align-items: end;
+}
+
+label { display: block; color: var(--muted); font-size: 14px; margin-bottom: 7px; }
+
+input[type="number"] {
+  width: 100%; border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px; color: #f5f5f7; font: inherit; font-size: 18px;
+  padding: 10px 12px; outline: none;
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.28);
+}
+
+input[type="number"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(182, 109, 255, 0.35), inset 0 0 18px rgba(0, 0, 0, 0.28);
+}
+
+#value1 { background: var(--pink-bg); border-color: rgba(255, 139, 210, 0.7); }
+#value2 { background: var(--yellow-bg); border-color: rgba(250, 204, 21, 0.72); }
+
+.warning { display: none; color: #ffe8a3; font-size: 14px; margin-top: 10px; }
+.warning.visible { display: block; }
+
+.results {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px;
+}
+
+.result-card { min-height: 260px; }
+
+.subtitle { margin: 0 0 14px; color: var(--muted); font-size: 13px; }
+
+.equation {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  color: #f5f5f7; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 13px; line-height: 1.8; margin-bottom: 14px; overflow-x: auto; padding: 14px;
+}
+
+.highlight {
+  display: inline-block; border-radius: 7px; color: #fff; font-weight: 700; padding: 0 6px; white-space: nowrap;
+}
+
+.highlight-pink {
+  background: rgba(255, 139, 210, 0.28);
+  border: 1px solid rgba(255, 139, 210, 0.8);
+  box-shadow: 0 0 8px rgba(255, 139, 210, 0.2);
+}
+
+.highlight-yellow {
+  background: rgba(250, 204, 21, 0.25);
+  border: 1px solid rgba(250, 204, 21, 0.8);
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.18);
+}
+
+.sentence { margin: 0; color: #f5f5f7; font-size: 16px; line-height: 1.5; }
+
+.percent-value { color: #e0c3ff; font-weight: 700; }
+
+.note { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 0; }
+
+/* link styling to match theme */
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+@media (max-width: 760px) {
+  body { padding: 18px; }
+  header { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .inputs, .results { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>Percent Difference Calculator</h1>
+    <div class="muted">Compare the same two values in both directions</div>
+  </header>
+
+  <div class="card intro-text fade-in">
+    <p>
+      Percent comparisons depend on which value you treat as the starting point. Enter two numbers below to see how much Value 1 differs from Value 2, and how much Value 2 differs from Value 1. 
+      If you want a deeper walkthrough of this idea, check out this open source middle school math textbook: 
+      <a href="https://bim.easyaccessmaterials.com/index.php?level=8.00" target="_blank">
+        Grade 7 Math (Easy Access Materials)
+      </a>.
+    </p>
+  </div>
+
+  <div class="card">
+    <div class="inputs">
+      <div>
+        <label for="value1">Value 1</label>
+        <input id="value1" type="number" inputmode="decimal" value="600">
+      </div>
+
+      <div>
+        <label for="value2">Value 2</label>
+        <input id="value2" type="number" inputmode="decimal" value="100">
+      </div>
+    </div>
+    <div id="warning" class="warning">Please enter valid numbers in both boxes.</div>
+  </div>
+
+  <div class="results">
+    <div class="card result-card">
+      <h2>If Value 1 is the New Value</h2>
+      <p class="subtitle">Using Value 2 as the starting value.</p>
+      <div id="forwardEquation" class="equation"></div>
+      <p id="forwardSentence" class="sentence"></p>
+    </div>
+
+    <div class="card result-card">
+      <h2>If Value 2 is the New Value</h2>
+      <p class="subtitle">Using Value 1 as the starting value.</p>
+      <div id="backwardEquation" class="equation"></div>
+      <p id="backwardSentence" class="sentence"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="note">
+      Note: Percent change divides by the starting value, so a starting value of 0 does not produce a defined percent comparison.
+    </p>
+  </div>
+
+</div>
+
+<script>
+const value1Input = document.getElementById("value1");
+const value2Input = document.getElementById("value2");
+const warning = document.getElementById("warning");
+const forwardEquation = document.getElementById("forwardEquation");
+const forwardSentence = document.getElementById("forwardSentence");
+const backwardEquation = document.getElementById("backwardEquation");
+const backwardSentence = document.getElementById("backwardSentence");
+
+function formatNumber(number) {
+  if (!Number.isFinite(number)) return "—";
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 6 }).format(number);
+}
+
+function formatPercent(number) {
+  if (!Number.isFinite(number)) return "—";
+  const rounded = Math.abs(number) < 0.0000005 ? 0 : number;
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: Number.isInteger(rounded) ? 0 : 2
+  }).format(Math.abs(rounded));
+}
+
+function getPercentChange(newValue, oldValue) {
+  if (!Number.isFinite(newValue) || !Number.isFinite(oldValue) || oldValue === 0) return null;
+  return ((newValue - oldValue) / Math.abs(oldValue)) * 100;
+}
+
+function getRelationshipWord(percentChange) {
+  if (percentChange === null) return "";
+  if (Math.abs(percentChange) < 0.0000005) return "equal to";
+  return percentChange > 0 ? "greater than" : "less than";
+}
+
+function renderCard(options) {
+  const { equationElement, sentenceElement, newLabel, oldLabel, newValue, oldValue, newClass, oldClass } = options;
+  const percentChange = getPercentChange(newValue, oldValue);
+
+  if (percentChange === null) {
+    equationElement.innerHTML = "Percent change is undefined when the starting value is 0.";
+    sentenceElement.textContent = "";
+    return;
+  }
+
+  const difference = newValue - oldValue;
+  const relationshipWord = getRelationshipWord(percentChange);
+  const sign = percentChange < 0 ? "−" : "";
+  const percentText = formatPercent(percentChange);
+
+  equationElement.innerHTML = `
+    <div>Percent change = (new − old) ÷ |old| × 100</div>
+    <div>
+      = (<span class="highlight ${newClass}">${formatNumber(newValue)}</span>
+      − <span class="highlight ${oldClass}">${formatNumber(oldValue)}</span>)
+      ÷ |<span class="highlight ${oldClass}">${formatNumber(oldValue)}</span>| × 100
+    </div>
+    <div>= ${formatNumber(difference)} ÷ ${formatNumber(Math.abs(oldValue))} × 100</div>
+    <div>= <span class="percent-value">${sign}${percentText}%</span></div>
+  `;
+
+  if (relationshipWord === "equal to") {
+    sentenceElement.textContent = `${newLabel} is equal to ${oldLabel}.`;
+  } else {
+    sentenceElement.innerHTML = `${newLabel} is <span class="percent-value">${percentText}%</span> ${relationshipWord} ${oldLabel}.`;
+  }
+}
+
+function updateResults() {
+  const value1 = Number(value1Input.value);
+  const value2 = Number(value2Input.value);
+  const value1Valid = value1Input.value.trim() !== "" && Number.isFinite(value1);
+  const value2Valid = value2Input.value.trim() !== "" && Number.isFinite(value2);
+
+  warning.classList.toggle("visible", !value1Valid || !value2Valid);
+
+  renderCard({ equationElement: forwardEquation, sentenceElement: forwardSentence, newLabel: "Value 1", oldLabel: "Value 2", newValue: value1, oldValue: value2, newClass: "highlight-pink", oldClass: "highlight-yellow" });
+
+  renderCard({ equationElement: backwardEquation, sentenceElement: backwardSentence, newLabel: "Value 2", oldLabel: "Value 1", newValue: value2, oldValue: value1, newClass: "highlight-yellow", oldClass: "highlight-pink" });
+}
+
+value1Input.addEventListener("input", updateResults);
+value2Input.addEventListener("input", updateResults);
+
+updateResults();
+</script>
+</body>
+</html>
