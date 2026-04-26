@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/png" href="../star.png">
+<title>Rocket Equation Explorer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>Rocket Equation Explorer</h1>
+    <div class="muted">Fuel mass and the rocket equation</div>
+  </header>
+
+  <div class="card intro-text fade-in">
+    <p>
+      The Tsiolkovsky rocket equation relates a rocket’s change in velocity to its engine exhaust velocity
+      and the ratio between its starting and final mass:
+    </p>
+
+    <div class="equation">Δv = v<sub>e</sub> ln(m<sub>0</sub> / m<sub>f</sub>)</div>
+
+    <p>
+      In this equation, Δv is the change in velocity the rocket needs, v<sub>e</sub> is the effective exhaust
+      velocity of the engine, m<sub>0</sub> is the initial total mass before burning fuel, and m<sub>f</sub>
+      is the final mass after the fuel is gone.
+    </p>
+
+    <p>
+      Since m<sub>f</sub> is the dry vehicle mass plus the payload mass, we can solve the equation for fuel mass:
+    </p>
+
+    <div class="equation">
+      m<sub>fuel</sub> = (m<sub>dry</sub> + m<sub>payload</sub>)(e<sup>Δv / v<sub>e</sub></sup> − 1)
+    </div>
+
+    <p>
+      Use the two scenarios below to see how changing the dry mass, payload, required Δv, or exhaust velocity
+      changes the amount of fuel required.
+    </p>
+  </div>
+
+  <div class="scenario-grid">
+
+    <div class="card calculator-card">
+      <h2>Scenario A</h2>
+
+      <label for="dvA">Δv required:</label>
+      <div class="input-row">
+        <input type="number" id="dvA" value="2" step="0.1">
+        <span>km/s</span>
+      </div>
+
+      <label for="dryA">Vehicle dry mass:</label>
+      <div class="input-row">
+        <input type="number" id="dryA" value="2" step="0.1">
+        <span>tons</span>
+      </div>
+
+      <label for="payloadA">Payload mass:</label>
+      <div class="input-row">
+        <input type="number" id="payloadA" value="1" step="0.1">
+        <span>tons</span>
+      </div>
+
+      <label for="veA">Exhaust velocity:</label>
+      <div class="input-row">
+        <input type="number" id="veA" value="3" step="0.1">
+        <span>km/s</span>
+      </div>
+
+      <div class="result-box">
+        <div class="muted">Fuel required</div>
+        <div class="result"><span id="fuelA">-</span> tons</div>
+      </div>
+    </div>
+
+    <div class="card calculator-card">
+      <h2>Scenario B</h2>
+
+      <label for="dvB">Δv required:</label>
+      <div class="input-row">
+        <input type="number" id="dvB" value="2" step="0.1">
+        <span>km/s</span>
+      </div>
+
+      <label for="dryB">Vehicle dry mass:</label>
+      <div class="input-row">
+        <input type="number" id="dryB" value="2" step="0.1">
+        <span>tons</span>
+      </div>
+
+      <label for="payloadB">Payload mass:</label>
+      <div class="input-row">
+        <input type="number" id="payloadB" value="1" step="0.1">
+        <span>tons</span>
+      </div>
+
+      <label for="veB">Exhaust velocity:</label>
+      <div class="input-row">
+        <input type="number" id="veB" value="3" step="0.1">
+        <span>km/s</span>
+      </div>
+
+      <div class="result-box">
+        <div class="muted">Fuel required</div>
+        <div class="result"><span id="fuelB">-</span> tons</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
