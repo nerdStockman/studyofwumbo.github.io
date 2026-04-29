@@ -3,35 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Under Construction – Study of Wumbo</title>
+  <title>Data for Download – Study of Wumbo</title>
   <link rel="icon" type="image/png" href="../star.png">
   <link rel="stylesheet" href="../style.css">
   <style>
-    .construction-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 70vh;
+    .data-container {
+      max-width: 900px;
+      margin: 60px auto;
+      padding: 20px;
       text-align: center;
       animation: fadeIn 1.5s ease forwards 0.1s;
     }
 
-    .construction-title {
+    .data-title {
       font-size: 2em;
       color: #ff6bff;
       text-shadow: 0 0 15px #ff6bff;
-      margin-bottom: 15px;
+      margin-bottom: 30px;
     }
 
-    .construction-subtitle {
-      font-size: 1.1em;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: white;
+    }
+
+    th, td {
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 12px;
+      text-align: left;
+    }
+
+    th {
       color: #fff36d;
       text-shadow: 0 0 10px #fff36d;
-      margin-bottom: 40px;
+    }
+
+    tr:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    a.data-link {
+      color: #4de1ff;
+      text-decoration: none;
+    }
+
+    a.data-link:hover {
+      text-decoration: underline;
     }
 
     .home-link {
+      display: inline-block;
+      margin-top: 30px;
       color: #fff36d;
       border: 2px solid #fff36d;
       border-radius: 15px;
@@ -54,9 +77,36 @@
     <div class="animated-icon2 block"></div>
   </header>
 
-  <main class="construction-container">
-    <div class="construction-title">🚧 Under Construction 🚧</div>
-    <div class="construction-subtitle">This part of Wumbo is still being built.<br>Check back soon!</div>
+  <main class="data-container">
+    <div class="data-title">Data for Download</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+	  
+      <tbody>
+        <tr>
+          <td>Magic Kingdom</td>
+          <td>Geiger counts while I walked around Magic Kingdom</td>
+          <td><a class="data-link" href="https://docs.google.com/spreadsheets/d/1OOEyv10elcrRKLgfiZhJcfpx6cdg-UsrV6UlCgpOKpY/edit?usp=sharing" target="_blank">View Data</a></td>
+        </tr>
+      </tbody>
+	  
+	  <tbody>
+        <tr>
+          <td>Flight June 2025</td>
+          <td>I love talking to the people next to me about radiation when I fly. Here is a typical flight.</td>
+          <td><a class="data-link" href="https://docs.google.com/spreadsheets/d/1c_SaPEeCn2uQwacd3-OhWjDzCURKwFcWbI3_bTQ3770/edit?usp=sharing" target="_blank">View Data</a></td>
+        </tr>
+      </tbody>
+	  
+    </table>
+
     <a href="../index.html" class="home-link">← Back to Home</a>
   </main>
 </body>
