@@ -20,7 +20,11 @@
 
   <header>
     <h1>Rocket Equation Explorer</h1>
-    <div class="muted">Fuel mass and the rocket equation</div>
+    <div class="muted">
+      Neil deGrasse Tyson recently discussed the
+      <a href="https://www.youtube.com/watch?v=-73MZsj8bVI" target="_blank" class="header-link">Rocket Equation on Star Talk</a>,
+      but he didn't quite get the details right. Let's check his claim that "the amount of fuel you need to deliver a certain payload grows exponentially for every extra pound of payload"
+    </div>
   </header>
 
   <div class="card intro-text fade-in">
@@ -32,22 +36,46 @@
     <div class="equation">Δv = v<sub>e</sub> ln(m<sub>0</sub> / m<sub>f</sub>)</div>
 
     <p>
-      In this equation, Δv is the change in velocity the rocket needs, v<sub>e</sub> is the effective exhaust
-      velocity of the engine, m<sub>0</sub> is the initial total mass before burning fuel, and m<sub>f</sub>
-      is the final mass after the fuel is gone.
+      Δv is the required change in velocity, v<sub>e</sub> is the exhaust velocity,
+      m<sub>0</sub> is the initial mass, and m<sub>f</sub> is the final mass.
     </p>
 
     <p>
-      Since m<sub>f</sub> is the dry vehicle mass plus the payload mass, we can solve the equation for fuel mass:
+      The initial mass m<sub>0</sub> includes all components of the rocket:
+      fuel, structure, and payload. That is:
     </p>
 
     <div class="equation">
-      m<sub>fuel</sub> = (m<sub>dry</sub> + m<sub>payload</sub>)(e<sup>Δv / v<sub>e</sub></sup> − 1)
+      m<sub>0</sub> = m<sub>fuel</sub> + m<sub>structure</sub> + m<sub>payload</sub>
     </div>
 
     <p>
-      Use the two scenarios below to see how changing the dry mass, payload, required Δv, or exhaust velocity
-      changes the amount of fuel required.
+      For simplicity, we combine the structure and payload into a single term m<sub>dry</sub>:
+    </p>
+
+    <div class="equation">
+      m<sub>0</sub> = m<sub>fuel</sub> + m<sub>dry</sub>
+    </div>
+
+    <p>
+      After all fuel is burned, only the dry mass remains, so:
+    </p>
+
+    <div class="equation">
+      m<sub>f</sub> = m<sub>dry</sub>
+    </div>
+
+    <p>
+      Substituting these into the rocket equation and solving for fuel mass gives:
+    </p>
+
+    <div class="equation">
+      m<sub>fuel</sub> = m<sub>dry</sub>(e<sup>Δv / v<sub>e</sub></sup> − 1)
+    </div>
+
+    <p>
+      Use the two scenarios below to see how changing the final mass, required Δv,
+      or exhaust velocity changes the amount of fuel required.
     </p>
   </div>
 
@@ -62,15 +90,9 @@
         <span>km/s</span>
       </div>
 
-      <label for="dryA">Vehicle dry mass:</label>
+      <label for="dryA">Final mass (m<sub>dry</sub>):</label>
       <div class="input-row">
-        <input type="number" id="dryA" value="2" step="0.1">
-        <span>tons</span>
-      </div>
-
-      <label for="payloadA">Payload mass:</label>
-      <div class="input-row">
-        <input type="number" id="payloadA" value="1" step="0.1">
+        <input type="number" id="dryA" value="3" step="0.1">
         <span>tons</span>
       </div>
 
@@ -95,15 +117,9 @@
         <span>km/s</span>
       </div>
 
-      <label for="dryB">Vehicle dry mass:</label>
+      <label for="dryB">Final mass (m<sub>dry</sub>):</label>
       <div class="input-row">
-        <input type="number" id="dryB" value="2" step="0.1">
-        <span>tons</span>
-      </div>
-
-      <label for="payloadB">Payload mass:</label>
-      <div class="input-row">
-        <input type="number" id="payloadB" value="1" step="0.1">
+        <input type="number" id="dryB" value="3" step="0.1">
         <span>tons</span>
       </div>
 
@@ -119,6 +135,22 @@
       </div>
     </div>
 
+  </div>
+
+  <div class="card plot-card">
+    <h2>Fuel Required vs Final Mass</h2>
+    <div class="plot-explanation">
+      Here is a plot of fuel mass vs dry mass from the Rocket Equation. Contrary to Dr. Tyson's claim and description, it is a linear relationship. An easy way to think of this is to imagine that if you want to double the payload of a rocket you could just send a second rocket. Double the payload, double the fuel. Linear.
+    </div>
+    <canvas id="plotCanvas" width="900" height="420"></canvas>
+  </div>
+
+  <div class="card plot-card">
+    <h2>Fuel Required vs Δv</h2>
+    <div class="plot-explanation">
+      The relationship that <em>is</em> exponential is between delta-v and fuel. In other words, it doesn't take exponentially more fuel to carry more mass but rather to take that same mass farther/faster.
+    </div>
+    <canvas id="deltaVPlotCanvas" width="900" height="420"></canvas>
   </div>
 
 </div>
