@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variant Go</title>
+  <style>
+    :root {
+      --bg: #101010;
+      --panel: #171717;
+      --panel-2: #1b1b1b;
+      --line: #323232;
+      --line-soft: #292929;
+      --text: #f2f2f2;
+      --muted: #b9b9b9;
+      --accent: #f1f1f1;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.38);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    button {
+      color: var(--text);
+    }
+
+    .topbar {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid #151515;
+      background: #111;
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      min-width: 38px;
+      height: 38px;
+      padding: 0 10px;
+      border: 1px solid #383838;
+      border-radius: 5px;
+      background: #141414;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .icon-btn:hover {
+      background: #202020;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      min-height: calc(100vh - 54px);
+      gap: 12px;
+      padding: 0 14px 14px 2px;
+    }
+
+    .sidebar {
+      background: var(--panel);
+      border-radius: 6px;
+      padding: 16px;
+      margin-top: 0;
+      overflow: hidden;
+    }
+
+    .sidebar label {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+    }
+
+    .sidebar input {
+      width: 100%;
+      height: 34px;
+      padding: 0 9px;
+      background: #141414;
+      color: var(--text);
+      border: 1px solid #3a3a3a;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .sidebar hr {
+      border: 0;
+      border-top: 1px solid var(--line);
+      margin: 17px 0 12px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 2px;
+      font-size: 25px;
+    }
+
+    .games-list {
+      margin-top: 4px;
+    }
+
+    .game-row {
+      padding: 6px 0;
+      border-bottom: 1px solid #343434;
+      color: #e4e4e4;
+      font-size: 16px;
+    }
+
+    .main-panel {
+      background: var(--panel);
+      border-radius: 6px;
+      margin-top: 0;
+      padding: 16px 18px 28px;
+      min-width: 0;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .page-header h1 {
+      margin: 4px 0 3px;
+      font-size: 27px;
+    }
+
+    .page-header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 720px;
+      line-height: 1.45;
+    }
+
+    .variant-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 16px;
+    }
+
+    .variant-card {
+      border: 1px solid #373737;
+      background: #141414;
+      border-radius: 7px;
+      overflow: hidden;
+      padding: 0;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .14s ease, border-color .14s ease, background .14s ease;
+    }
+
+    .variant-card:hover {
+      transform: translateY(-2px);
+      border-color: #727272;
+      background: #191919;
+    }
+
+    .variant-card:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 2px;
+    }
+
+    .variant-image-wrap {
+      aspect-ratio: 16 / 9;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.03), transparent 45%),
+        #202020;
+      display: grid;
+      place-items: center;
+      border-bottom: 1px solid #333;
+    }
+
+    .variant-image {
+      width: 42%;
+      max-width: 120px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      box-shadow: 0 8px 24px rgba(0,0,0,.38);
+    }
+
+    .variant-copy {
+      padding: 13px 14px 15px;
+    }
+
+    .variant-name {
+      display: block;
+      font-size: 19px;
+      font-weight: 750;
+      margin-bottom: 4px;
+    }
+
+    .variant-desc {
+      display: block;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+      min-height: 38px;
+    }
+
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.68);
+      display: none;
+      place-items: center;
+      padding: 24px;
+      z-index: 30;
+    }
+
+    .backdrop.open {
+      display: grid;
+    }
+
+    .settings-modal {
+      width: min(900px, 96vw);
+      max-height: 92vh;
+      overflow: auto;
+      background: #181818;
+      border: 1px solid #393939;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      position: sticky;
+      top: 0;
+      background: #181818;
+      z-index: 2;
+    }
+
+    .modal-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .modal-thumb {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      image-rendering: pixelated;
+      border: 1px solid #3d3d3d;
+      border-radius: 4px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 23px;
+    }
+
+    .modal-header p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid #3b3b3b;
+      border-radius: 5px;
+      background: #141414;
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .btn:hover {
+      background: #242424;
+    }
+
+    .btn.primary {
+      border-color: #646464;
+      background: #222;
+    }
+
+    .modal-body {
+      padding: 18px;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .field-group {
+      margin-bottom: 16px;
+    }
+
+    .field-group label,
+    .group-label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 650;
+    }
+
+    .text-input,
+    .select-input,
+    .number-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 0 12px;
+      background: #141414;
+      color: var(--text);
+      border: 1px solid #393939;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .segmented button {
+      min-height: 42px;
+      border: 1px solid #393939;
+      background: #141414;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .segmented button.selected {
+      border-color: #fff;
+      box-shadow: inset 0 0 0 1px #fff;
+      background: #202020;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1.15fr .8fr 1fr;
+      gap: 8px;
+    }
+
+    .bonus-panel {
+      border-top: 1px solid var(--line);
+      margin-top: 4px;
+      padding-top: 16px;
+    }
+
+    .bonus-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      color: #eee;
+    }
+
+    .bonus-row input[type="checkbox"] {
+      width: 21px;
+      height: 21px;
+      accent-color: #ddd;
+    }
+
+    .bonus-row .small-number {
+      width: 76px;
+      min-height: 38px;
+      background: #141414;
+      color: #fff;
+      border: 1px solid #393939;
+      border-radius: 5px;
+      padding: 0 8px;
+    }
+
+    .rules-alert {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      background: rgba(0,0,0,.75);
+      z-index: 50;
+      padding: 20px;
+    }
+
+    .rules-alert.open {
+      display: grid;
+    }
+
+    .rules-box {
+      width: min(420px, 94vw);
+      background: #1a1a1a;
+      border: 1px solid #434343;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 22px;
+      text-align: center;
+    }
+
+    .rules-box h3 {
+      margin: 0 0 18px;
+      font-size: 22px;
+    }
+
+    @media (max-width: 1050px) {
+      .variant-grid {
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
+      }
+
+      .settings-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        padding: 0 10px 10px;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .variant-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .modal-header {
+        align-items: flex-start;
+      }
+
+      .modal-actions {
+        flex-direction: column;
+      }
+
+      .row-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">VARIANT GO</div>
+    <div class="top-actions" aria-label="Utility controls">
+      <button class="icon-btn" title="Settings">⚙</button>
+      <button class="icon-btn" title="Account">A1</button>
+      <button class="icon-btn" title="Theme">●</button>
+      <button class="icon-btn" title="Sound">🔊</button>
+      <button class="icon-btn" title="Language">◐</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <label for="player-name">Name</label>
+      <input id="player-name" value="Plucky Otter" />
+      <hr />
+      <h2>Games</h2>
+      <div class="games-list">
+        <div class="game-row">Game #101</div>
+        <div class="game-row">Game #100</div>
+        <div class="game-row">foo</div>
+        <div class="game-row">Game #98</div>
+        <div class="game-row">Game #97</div>
+        <div class="game-row">Game #96</div>
+        <div class="game-row">Game #95</div>
+        <div class="game-row">Game #94</div>
+        <div class="game-row">Game #93</div>
+        <div class="game-row">Game #92</div>
+        <div class="game-row">Game #91</div>
+        <div class="game-row">Game #90</div>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <div class="page-header">
+        <div>
+          <h1>Choose a Variant</h1>
+          <p>Pick the kind of Go you want to play. Board size, scoring, komi, handicap, and other game options come next.</p>
+        </div>
+      </div>
+
+      <section class="variant-grid" id="variant-grid" aria-label="Go variants"></section>
+    </main>
+  </div>
+
+  <div class="backdrop" id="settings-backdrop" aria-hidden="true">
+    <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <header class="modal-header">
+        <div class="modal-title-wrap">
+          <img class="modal-thumb" src="assets/variant-placeholder.png" alt="" />
+          <div>
+            <h2 id="settings-title">Pixel Go</h2>
+            <p>Configure this game before creating it.</p>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn" id="rules-button">Rules</button>
+          <button class="btn" id="close-settings">Cancel</button>
+          <button class="btn primary">Create</button>
+        </div>
+      </header>
+
+      <div class="modal-body">
+        <div class="settings-grid">
+          <div>
+            <div class="field-group">
+              <div class="group-label">Seat</div>
+              <button class="btn">Black</button>
+            </div>
+
+            <div class="field-group">
+              <label for="game-name">Game name</label>
+              <input class="text-input" id="game-name" />
+            </div>
+
+            <div class="field-group">
+              <div class="group-label">Board size</div>
+              <div class="segmented" id="board-size-options">
+                <button>9</button>
+                <button>13</button>
+                <button class="selected">19</button>
+                <button>Custom</button>
+              </div>
+            </div>
+
+            <div class="field-group row-3">
+              <div>
+                <label for="scoring">Scoring</label>
+                <select class="select-input" id="scoring">
+                  <option>Chinese</option>
+                  <option>Japanese</option>
+                  <option>AGA</option>
+                </select>
+              </div>
+              <div>
+                <label for="komi">Komi</label>
+                <input class="number-input" id="komi" type="number" step="0.5" value="7.5" />
+              </div>
+              <div>
+                <label for="handicap">Handicap</label>
+                <select class="select-input" id="handicap">
+                  <option>None</option>
+                  <option>2 stones</option>
+                  <option>3 stones</option>
+                  <option>4 stones</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label for="time-control">Time</label>
+              <select class="select-input" id="time-control">
+                <option>None</option>
+                <option>Absolute</option>
+                <option>Byo-yomi</option>
+                <option>Canadian</option>
+                <option>Fischer</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <div class="bonus-panel">
+              <div class="group-label">Bonus Points</div>
+              <div class="bonus-row">
+                <label><input type="checkbox" /> Captures</label>
+                <label for="ponnuki">Ponnuki</label>
+                <input class="small-number" id="ponnuki" type="number" value="0" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="rules-alert" id="rules-alert" aria-hidden="true">
+    <div class="rules-box">
+      <h3 id="rules-text">Rules of Pixel Go</h3>
+      <button class="btn primary" id="close-rules">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const variants = [
+      ["Pixel", "A blocky twist on the board and its intersections."],
+      ["Zen", "A calmer variant built around a different rhythm of play."],
+      ["Color", "Stones and territory gain a colorful new dimension."],
+      ["Phantom", "Play with incomplete information and deduction."],
+      ["Hidden", "Some of the board is concealed from view."],
+      ["Joseki Card", "Cards introduce opening patterns and special effects."],
+      ["Tetris", "Go meets falling-block shapes and spatial chaos."],
+      ["N+1", "Each turn adds one more complication."],
+      ["Traitor", "Loyalty is not always guaranteed."],
+      ["Random Turn", "Turn order can change when you least expect it."],
+      ["Team Go", "Coordinate with allies against another team."]
+    ];
+
+    const grid = document.getElementById("variant-grid");
+    const backdrop = document.getElementById("settings-backdrop");
+    const settingsTitle = document.getElementById("settings-title");
+    const rulesAlert = document.getElementById("rules-alert");
+    const rulesText = document.getElementById("rules-text");
+    let selectedVariant = "Pixel";
+
+    variants.forEach(([name, description]) => {
+      const card = document.createElement("button");
+      card.className = "variant-card";
+      card.innerHTML = `
+        <span class="variant-image-wrap">
+          <img class="variant-image" src="assets/variant-placeholder.png" alt="">
+        </span>
+        <span class="variant-copy">
+          <span class="variant-name">${name} Go</span>
+          <span class="variant-desc">${description}</span>
+        </span>
+      `;
+      card.addEventListener("click", () => openSettings(name));
+      grid.appendChild(card);
+    });
+
+    function openSettings(name) {
+      selectedVariant = name;
+      settingsTitle.textContent = `${name} Go`;
+      backdrop.classList.add("open");
+      backdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function closeSettings() {
+      backdrop.classList.remove("open");
+      backdrop.setAttribute("aria-hidden", "true");
+    }
+
+    document.getElementById("close-settings").addEventListener("click", closeSettings);
+
+    document.getElementById("rules-button").addEventListener("click", () => {
+      rulesText.textContent = `Rules of ${selectedVariant} Go`;
+      rulesAlert.classList.add("open");
+      rulesAlert.setAttribute("aria-hidden", "false");
+    });
+
+    document.getElementById("close-rules").addEventListener("click", () => {
+      rulesAlert.classList.remove("open");
+      rulesAlert.setAttribute("aria-hidden", "true");
+    });
+
+    backdrop.addEventListener("click", (event) => {
+      if (event.target === backdrop) closeSettings();
+    });
+
+    rulesAlert.addEventListener("click", (event) => {
+      if (event.target === rulesAlert) {
+        rulesAlert.classList.remove("open");
+        rulesAlert.setAttribute("aria-hidden", "true");
+      }
+    });
+
+    document.querySelectorAll("#board-size-options button").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("#board-size-options button").forEach(b => b.classList.remove("selected"));
+        button.classList.add("selected");
+      });
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        if (rulesAlert.classList.contains("open")) {
+          rulesAlert.classList.remove("open");
+          rulesAlert.setAttribute("aria-hidden", "true");
+        } else if (backdrop.classList.contains("open")) {
+          closeSettings();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
