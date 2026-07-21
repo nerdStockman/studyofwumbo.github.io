@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pixel Go Board Builder</title>
+  <style>
+    :root {
+      --bg: #101010;
+      --panel: #181818;
+      --panel-2: #141414;
+      --line: #363636;
+      --text: #f2f2f2;
+      --muted: #b9b9b9;
+      --accent: #f4f4f4;
+      --wood: #c9964b;
+      --wood-dark: #70501f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    .topbar {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid #191919;
+      background: #111;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: .6px;
+    }
+
+    .page {
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      gap: 14px;
+      padding: 14px;
+      min-height: calc(100vh - 56px);
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid #222;
+      border-radius: 8px;
+    }
+
+    .controls {
+      padding: 18px;
+      align-self: start;
+      position: sticky;
+      top: 14px;
+    }
+
+    h1, h2, h3, p {
+      margin-top: 0;
+    }
+
+    .controls h1 {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .intro {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    label,
+    .field-label {
+      display: block;
+      font-weight: 650;
+      margin-bottom: 7px;
+    }
+
+    input[type="file"],
+    select,
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 5px;
+      padding: 10px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 64px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .range-value {
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: var(--panel-2);
+      padding: 7px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .helper-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 7px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+      color: #eee;
+    }
+
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      accent-color: #ddd;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      background: #151515;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    button:hover {
+      background: #232323;
+    }
+
+    button.primary {
+      background: #242424;
+      border-color: #666;
+    }
+
+    .workspace {
+      padding: 18px;
+      min-width: 0;
+    }
+
+    .workspace-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+    }
+
+    .workspace-header h2 {
+      margin-bottom: 5px;
+      font-size: 24px;
+    }
+
+    .workspace-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .stat {
+      min-width: 112px;
+      padding: 9px 11px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-2);
+    }
+
+    .stat-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 18px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .preview-card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      overflow: hidden;
+      background: var(--panel-2);
+    }
+
+    .preview-card h3 {
+      margin: 0;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 16px;
+    }
+
+    .canvas-wrap {
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      background:
+        linear-gradient(45deg, #1d1d1d 25%, transparent 25%),
+        linear-gradient(-45deg, #1d1d1d 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #1d1d1d 75%),
+        linear-gradient(-45deg, transparent 75%, #1d1d1d 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+      border: 1px solid #2e2e2e;
+      background: #0e0e0e;
+    }
+
+    .save-goban-button {
+      width: 100%;
+      min-height: 58px;
+      margin-top: 16px;
+      font-size: 18px;
+      background: #282828;
+      border-color: #777;
+    }
+
+    .save-goban-button:hover {
+      background: #343434;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-2);
+    }
+
+    .warning {
+      color: #f1d39a;
+    }
+
+    @media (max-width: 1050px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .workspace-header {
+        flex-direction: column;
+      }
+
+      .stats {
+        justify-content: flex-start;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">PIXEL GO</div>
+    <div>Board Builder Prototype</div>
+  </header>
+
+  <main class="page">
+    <aside class="panel controls">
+      <h1>Create a Goban</h1>
+      <p class="intro">
+        Upload an image, resize it if desired, and convert it to a Go graph where every resulting image pixel corresponds one-to-one with a potential intersection.
+      </p>
+
+      <div class="field">
+        <label for="image-upload">Image</label>
+        <input id="image-upload" type="file" accept="image/*" />
+      </div>
+
+      <div class="field">
+        <label for="image-size">Image size / longest board side</label>
+        <div class="range-row">
+          <input id="image-size" type="range" min="5" max="100" value="100" />
+          <div class="range-value" id="image-size-value">100</div>
+        </div>
+        <div class="helper-text">The uploaded image is resized so its longest dimension matches this value while preserving aspect ratio. Neither dimension will exceed 100.</div>
+      </div>
+
+      <div class="field">
+        <label for="threshold">Darkness threshold</label>
+        <div class="range-row">
+          <input id="threshold" type="range" min="0" max="255" value="100" />
+          <div class="range-value" id="threshold-value">100</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="visual-strength">Image visibility on board</label>
+        <div class="range-row">
+          <input id="visual-strength" type="range" min="0" max="100" value="60" />
+          <div class="range-value" id="visual-value">60%</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="check-row">
+          <input id="invert" type="checkbox" />
+          <label for="invert" style="margin:0;font-weight:500;">Invert playable mask</label>
+        </div>
+        <div class="check-row">
+          <input id="largest-only" type="checkbox" />
+          <label for="largest-only" style="margin:0;font-weight:500;">Keep largest connected region only</label>
+        </div>
+        <div class="check-row">
+          <input id="show-grid" type="checkbox" checked />
+          <label for="show-grid" style="margin:0;font-weight:500;">Draw playable connections</label>
+        </div>
+        <div class="check-row">
+          <input id="show-nodes" type="checkbox" />
+          <label for="show-nodes" style="margin:0;font-weight:500;">Draw intersections</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="board-style">Board appearance</label>
+        <select id="board-style">
+          <option value="wood" selected>Wood-toned image</option>
+          <option value="gray">Original grayscale</option>
+          <option value="clean">Clean board mask</option>
+        </select>
+      </div>
+
+      <div class="button-row">
+        <button id="reset-button">Reset Sample</button>
+        <button id="download-button">Download PNG</button>
+      </div>
+    </aside>
+
+    <section class="panel workspace">
+      <div class="workspace-header">
+        <div>
+          <h2>Board Preview</h2>
+          <p>The final panel is the generated non-playable mockup board. Every resized image pixel maps to one potential intersection.</p>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-label">Board dimensions</span>
+            <span class="stat-value" id="dimensions-stat">19 × 19</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Playable points</span>
+            <span class="stat-value" id="playable-stat">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Connected regions</span>
+            <span class="stat-value" id="regions-stat">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-grid">
+        <article class="preview-card">
+          <h3>Original / Downsampled</h3>
+          <div class="canvas-wrap">
+            <canvas id="source-canvas" width="600" height="600"></canvas>
+          </div>
+        </article>
+
+        <article class="preview-card">
+          <h3>Threshold Mask</h3>
+          <div class="canvas-wrap">
+            <canvas id="mask-canvas" width="600" height="600"></canvas>
+          </div>
+        </article>
+
+        <article class="preview-card">
+          <h3>Generated Goban</h3>
+          <div class="canvas-wrap">
+            <canvas id="board-canvas" width="600" height="600"></canvas>
+          </div>
+        </article>
+      </div>
+
+      <button class="save-goban-button" id="save-goban-button">Save this Goban</button>
+
+      <div class="note" id="status-note">
+        Light pixels are playable by default. Dark pixels become holes in the graph. Adjacent playable points connect horizontally and vertically.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const SAMPLE_IMAGE = "data:image/png;base64,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";
+
+    const upload = document.getElementById("image-upload");
+    const imageSize = document.getElementById("image-size");
+    const imageSizeValue = document.getElementById("image-size-value");
+    const threshold = document.getElementById("threshold");
+    const thresholdValue = document.getElementById("threshold-value");
+    const visualStrength = document.getElementById("visual-strength");
+    const visualValue = document.getElementById("visual-value");
+    const invert = document.getElementById("invert");
+    const largestOnly = document.getElementById("largest-only");
+    const showGrid = document.getElementById("show-grid");
+    const showNodes = document.getElementById("show-nodes");
+    const boardStyle = document.getElementById("board-style");
+    const resetButton = document.getElementById("reset-button");
+    const downloadButton = document.getElementById("download-button");
+    const saveGobanButton = document.getElementById("save-goban-button");
+
+    const sourceCanvas = document.getElementById("source-canvas");
+    const maskCanvas = document.getElementById("mask-canvas");
+    const boardCanvas = document.getElementById("board-canvas");
+    const sourceCtx = sourceCanvas.getContext("2d");
+    const maskCtx = maskCanvas.getContext("2d");
+    const boardCtx = boardCanvas.getContext("2d");
+
+    const dimensionsStat = document.getElementById("dimensions-stat");
+    const playableStat = document.getElementById("playable-stat");
+    const regionsStat = document.getElementById("regions-stat");
+    const statusNote = document.getElementById("status-note");
+
+    const image = new Image();
+    let gray = [];
+    let playable = [];
+    let boardWidth = 100;
+    let boardHeight = 100;
+
+    image.onload = rebuild;
+    image.src = SAMPLE_IMAGE;
+
+    function fitDimensions(imgWidth, imgHeight, maxSide) {
+      if (imgWidth >= imgHeight) {
+        return {
+          width: maxSide,
+          height: Math.max(2, Math.round(maxSide * imgHeight / imgWidth))
+        };
+      }
+      return {
+        width: Math.max(2, Math.round(maxSide * imgWidth / imgHeight)),
+        height: maxSide
+      };
+    }
+
+    function rebuild() {
+      imageSizeValue.textContent = imageSize.value;
+      const maxSide = Number(imageSize.value);
+      const dims = fitDimensions(image.naturalWidth || 1, image.naturalHeight || 1, maxSide);
+      boardWidth = dims.width;
+      boardHeight = dims.height;
+
+      const temp = document.createElement("canvas");
+      temp.width = boardWidth;
+      temp.height = boardHeight;
+      const tctx = temp.getContext("2d", { willReadFrequently: true });
+      tctx.imageSmoothingEnabled = true;
+      tctx.drawImage(image, 0, 0, boardWidth, boardHeight);
+
+      const pixels = tctx.getImageData(0, 0, boardWidth, boardHeight).data;
+      gray = new Array(boardWidth * boardHeight);
+
+      for (let i = 0; i < gray.length; i++) {
+        const r = pixels[i * 4];
+        const g = pixels[i * 4 + 1];
+        const b = pixels[i * 4 + 2];
+        const a = pixels[i * 4 + 3] / 255;
+        const luminance = Math.round((0.2126 * r + 0.7152 * g + 0.0722 * b) * a + 255 * (1 - a));
+        gray[i] = luminance;
+      }
+
+      calculatePlayable();
+      drawAll();
+    }
+
+    function calculatePlayable() {
+      const t = Number(threshold.value);
+      const invertMask = invert.checked;
+
+      playable = gray.map(value => invertMask ? value <= t : value > t);
+
+      if (largestOnly.checked) {
+        playable = retainLargestRegion(playable, boardWidth, boardHeight);
+      }
+    }
+
+    function retainLargestRegion(mask, width, height) {
+      const seen = new Array(mask.length).fill(false);
+      let largest = [];
+
+      for (let i = 0; i < mask.length; i++) {
+        if (!mask[i] || seen[i]) continue;
+        const region = [];
+        const queue = [i];
+        seen[i] = true;
+
+        for (let q = 0; q < queue.length; q++) {
+          const idx = queue[q];
+          region.push(idx);
+          const x = idx % width;
+          const y = Math.floor(idx / width);
+          const neighbors = [
+            x > 0 ? idx - 1 : -1,
+            x < width - 1 ? idx + 1 : -1,
+            y > 0 ? idx - width : -1,
+            y < height - 1 ? idx + width : -1
+          ];
+
+          for (const n of neighbors) {
+            if (n >= 0 && mask[n] && !seen[n]) {
+              seen[n] = true;
+              queue.push(n);
+            }
+          }
+        }
+
+        if (region.length > largest.length) largest = region;
+      }
+
+      const result = new Array(mask.length).fill(false);
+      for (const idx of largest) result[idx] = true;
+      return result;
+    }
+
+    function countRegions(mask, width, height) {
+      const seen = new Array(mask.length).fill(false);
+      let count = 0;
+
+      for (let i = 0; i < mask.length; i++) {
+        if (!mask[i] || seen[i]) continue;
+        count++;
+        const queue = [i];
+        seen[i] = true;
+
+        for (let q = 0; q < queue.length; q++) {
+          const idx = queue[q];
+          const x = idx % width;
+          const y = Math.floor(idx / width);
+          const neighbors = [
+            x > 0 ? idx - 1 : -1,
+            x < width - 1 ? idx + 1 : -1,
+            y > 0 ? idx - width : -1,
+            y < height - 1 ? idx + width : -1
+          ];
+
+          for (const n of neighbors) {
+            if (n >= 0 && mask[n] && !seen[n]) {
+              seen[n] = true;
+              queue.push(n);
+            }
+          }
+        }
+      }
+
+      return count;
+    }
+
+    function drawAll() {
+      drawSource();
+      drawMask();
+      drawBoard();
+      updateStats();
+    }
+
+    function clearCanvas(ctx, canvas, color) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function getLayout(canvas) {
+      const pad = 28;
+      const cell = Math.min(
+        (canvas.width - pad * 2) / boardWidth,
+        (canvas.height - pad * 2) / boardHeight
+      );
+      const drawWidth = cell * boardWidth;
+      const drawHeight = cell * boardHeight;
+      return {
+        cell,
+        x0: (canvas.width - drawWidth) / 2,
+        y0: (canvas.height - drawHeight) / 2,
+        drawWidth,
+        drawHeight
+      };
+    }
+
+    function drawSource() {
+      clearCanvas(sourceCtx, sourceCanvas, "#111");
+      const layout = getLayout(sourceCanvas);
+      const temp = document.createElement("canvas");
+      temp.width = boardWidth;
+      temp.height = boardHeight;
+      const ctx = temp.getContext("2d");
+      const data = ctx.createImageData(boardWidth, boardHeight);
+
+      for (let i = 0; i < gray.length; i++) {
+        data.data[i * 4] = gray[i];
+        data.data[i * 4 + 1] = gray[i];
+        data.data[i * 4 + 2] = gray[i];
+        data.data[i * 4 + 3] = 255;
+      }
+
+      ctx.putImageData(data, 0, 0);
+      sourceCtx.imageSmoothingEnabled = false;
+      sourceCtx.drawImage(temp, layout.x0, layout.y0, layout.drawWidth, layout.drawHeight);
+    }
+
+    function drawMask() {
+      clearCanvas(maskCtx, maskCanvas, "#111");
+      const layout = getLayout(maskCanvas);
+
+      for (let y = 0; y < boardHeight; y++) {
+        for (let x = 0; x < boardWidth; x++) {
+          const idx = y * boardWidth + x;
+          maskCtx.fillStyle = playable[idx] ? "#f2f2f2" : "#111";
+          maskCtx.fillRect(
+            layout.x0 + x * layout.cell,
+            layout.y0 + y * layout.cell,
+            layout.cell + 0.5,
+            layout.cell + 0.5
+          );
+        }
+      }
+    }
+
+    function woodColor(grayValue, strength) {
+      const normalized = grayValue / 255;
+      const darkness = (1 - normalized) * strength;
+      const light = [205, 157, 78];
+      const dark = [113, 76, 28];
+      const r = Math.round(light[0] * (1 - darkness) + dark[0] * darkness);
+      const g = Math.round(light[1] * (1 - darkness) + dark[1] * darkness);
+      const b = Math.round(light[2] * (1 - darkness) + dark[2] * darkness);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    function drawBoard() {
+      clearCanvas(boardCtx, boardCanvas, "#0d0d0d");
+      const layout = getLayout(boardCanvas);
+      const strength = Number(visualStrength.value) / 100;
+      const style = boardStyle.value;
+
+      for (let y = 0; y < boardHeight; y++) {
+        for (let x = 0; x < boardWidth; x++) {
+          const idx = y * boardWidth + x;
+          const px = layout.x0 + x * layout.cell;
+          const py = layout.y0 + y * layout.cell;
+
+          if (!playable[idx]) {
+            boardCtx.fillStyle = "#151515";
+          } else if (style === "clean") {
+            boardCtx.fillStyle = "#c9964b";
+          } else if (style === "gray") {
+            const v = Math.round(245 - (255 - gray[idx]) * strength * 0.75);
+            boardCtx.fillStyle = `rgb(${v}, ${v}, ${v})`;
+          } else {
+            boardCtx.fillStyle = woodColor(gray[idx], strength);
+          }
+
+          boardCtx.fillRect(px, py, layout.cell + 0.5, layout.cell + 0.5);
+        }
+      }
+
+      if (showGrid.checked) {
+        boardCtx.strokeStyle = "rgba(25, 20, 12, 0.82)";
+        boardCtx.lineWidth = Math.max(1, layout.cell * 0.08);
+        boardCtx.lineCap = "round";
+
+        for (let y = 0; y < boardHeight; y++) {
+          for (let x = 0; x < boardWidth; x++) {
+            const idx = y * boardWidth + x;
+            if (!playable[idx]) continue;
+
+            const cx = layout.x0 + (x + 0.5) * layout.cell;
+            const cy = layout.y0 + (y + 0.5) * layout.cell;
+
+            if (x < boardWidth - 1 && playable[idx + 1]) {
+              const nx = layout.x0 + (x + 1.5) * layout.cell;
+              boardCtx.beginPath();
+              boardCtx.moveTo(cx, cy);
+              boardCtx.lineTo(nx, cy);
+              boardCtx.stroke();
+            }
+
+            if (y < boardHeight - 1 && playable[idx + boardWidth]) {
+              const ny = layout.y0 + (y + 1.5) * layout.cell;
+              boardCtx.beginPath();
+              boardCtx.moveTo(cx, cy);
+              boardCtx.lineTo(cx, ny);
+              boardCtx.stroke();
+            }
+          }
+        }
+      }
+
+      if (showNodes.checked) {
+        const radius = Math.max(1.4, layout.cell * 0.13);
+        boardCtx.fillStyle = "rgba(24, 18, 10, 0.92)";
+
+        for (let y = 0; y < boardHeight; y++) {
+          for (let x = 0; x < boardWidth; x++) {
+            const idx = y * boardWidth + x;
+            if (!playable[idx]) continue;
+
+            const cx = layout.x0 + (x + 0.5) * layout.cell;
+            const cy = layout.y0 + (y + 0.5) * layout.cell;
+            boardCtx.beginPath();
+            boardCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+            boardCtx.fill();
+          }
+        }
+      }
+    }
+
+    function updateStats() {
+      const playableCount = playable.filter(Boolean).length;
+      const regions = countRegions(playable, boardWidth, boardHeight);
+      dimensionsStat.textContent = `${boardWidth} × ${boardHeight}`;
+      playableStat.textContent = playableCount.toLocaleString();
+      regionsStat.textContent = regions.toLocaleString();
+
+      if (boardWidth * boardHeight > 2500) {
+        statusNote.innerHTML = '<span class="warning">Large experimental board:</span> this mockup can render it, but a real game engine may need stricter limits.';
+      } else if (regions > 1) {
+        statusNote.innerHTML = `This board contains <strong>${regions}</strong> disconnected playable regions. That can be allowed as part of the variant or reduced with “Keep largest connected region only.”`;
+      } else {
+        statusNote.textContent = "The playable graph is connected. Each point links only to playable orthogonal neighbors.";
+      }
+    }
+
+    function updateAndDraw() {
+      thresholdValue.textContent = threshold.value;
+      visualValue.textContent = `${visualStrength.value}%`;
+      calculatePlayable();
+      drawAll();
+    }
+
+    upload.addEventListener("change", () => {
+      const file = upload.files && upload.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = event => {
+        image.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    imageSize.addEventListener("input", rebuild);
+    threshold.addEventListener("input", updateAndDraw);
+    visualStrength.addEventListener("input", updateAndDraw);
+    invert.addEventListener("change", updateAndDraw);
+    largestOnly.addEventListener("change", updateAndDraw);
+    showGrid.addEventListener("change", drawAll);
+    showNodes.addEventListener("change", drawAll);
+    boardStyle.addEventListener("change", drawAll);
+
+
+    function createGobanSaveFile() {
+      const playablePoints = [];
+      const grayscale = [];
+
+      for (let y = 0; y < boardHeight; y++) {
+        const playableRow = [];
+        const grayscaleRow = [];
+
+        for (let x = 0; x < boardWidth; x++) {
+          const idx = y * boardWidth + x;
+          playableRow.push(Boolean(playable[idx]));
+          grayscaleRow.push(gray[idx]);
+        }
+
+        playablePoints.push(playableRow);
+        grayscale.push(grayscaleRow);
+      }
+
+      return {
+        schema: "variant-go-pixel-goban",
+        version: 1,
+        created_utc: new Date().toISOString(),
+        board: {
+          width: boardWidth,
+          height: boardHeight,
+          adjacency: "orthogonal-4",
+          playable_points: playablePoints
+        },
+        image: {
+          resized_width: boardWidth,
+          resized_height: boardHeight,
+          grayscale_0_255: grayscale
+        },
+        generation: {
+          longest_side: Number(imageSize.value),
+          threshold_0_255: Number(threshold.value),
+          invert_mask: invert.checked,
+          largest_connected_region_only: largestOnly.checked
+        },
+        display: {
+          style: boardStyle.value,
+          image_visibility_percent: Number(visualStrength.value),
+          draw_connections: showGrid.checked,
+          draw_intersections: showNodes.checked
+        }
+      };
+    }
+
+    saveGobanButton.addEventListener("click", () => {
+      const data = createGobanSaveFile();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = `pixel-go-${boardWidth}x${boardHeight}.goban.json`;
+      link.href = url;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    });
+
+    resetButton.addEventListener("click", () => {
+      upload.value = "";
+      imageSize.value = "100";
+      imageSizeValue.textContent = "100";
+      threshold.value = "100";
+      visualStrength.value = "60";
+      invert.checked = false;
+      largestOnly.checked = false;
+      showGrid.checked = true;
+      showNodes.checked = false;
+      boardStyle.value = "wood";
+      thresholdValue.textContent = "100";
+      visualValue.textContent = "60%";
+      image.src = SAMPLE_IMAGE;
+    });
+
+    downloadButton.addEventListener("click", () => {
+      const link = document.createElement("a");
+      link.download = "pixel-go-board.png";
+      link.href = boardCanvas.toDataURL("image/png");
+      link.click();
+    });
+  </script>
+</body>
+</html>
