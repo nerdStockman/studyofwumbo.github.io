@@ -348,8 +348,8 @@
       <div class="field">
         <label for="image-size">Image size / longest board side</label>
         <div class="range-row">
-          <input id="image-size" type="range" min="5" max="100" value="45" />
-          <div class="range-value" id="image-size-value">45</div>
+          <input id="image-size" type="range" min="5" max="100" value="30" />
+          <div class="range-value" id="image-size-value">30</div>
         </div>
         <div class="helper-text">The uploaded image is resized so its longest dimension matches this value while preserving aspect ratio. Neither dimension will exceed 100.</div>
       </div>
@@ -887,8 +887,8 @@
 
     resetButton.addEventListener("click", () => {
       upload.value = "";
-      imageSize.value = "45";
-      imageSizeValue.textContent = "45";
+      imageSize.value = "30";
+      imageSizeValue.textContent = "30";
       threshold.value = "100";
       visualStrength.value = "60";
       invert.checked = true;
