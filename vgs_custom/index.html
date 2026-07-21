@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pixel Go Board Builder</title>
+  <title>Custom Go Board Builder</title>
   <style>
     :root {
       --bg: #101010;
@@ -329,7 +329,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand">PIXEL GO</div>
+    <div class="brand">CUSTOM GO</div>
     <div>Board Builder Prototype</div>
   </header>
 
@@ -348,8 +348,8 @@
       <div class="field">
         <label for="image-size">Image size / longest board side</label>
         <div class="range-row">
-          <input id="image-size" type="range" min="5" max="100" value="100" />
-          <div class="range-value" id="image-size-value">100</div>
+          <input id="image-size" type="range" min="5" max="100" value="45" />
+          <div class="range-value" id="image-size-value">45</div>
         </div>
         <div class="helper-text">The uploaded image is resized so its longest dimension matches this value while preserving aspect ratio. Neither dimension will exceed 100.</div>
       </div>
@@ -372,7 +372,7 @@
 
       <div class="field">
         <div class="check-row">
-          <input id="invert" type="checkbox" />
+          <input id="invert" type="checkbox" checked />
           <label for="invert" style="margin:0;font-weight:500;">Invert playable mask</label>
         </div>
         <div class="check-row">
@@ -458,7 +458,7 @@
   </main>
 
   <script>
-    const SAMPLE_IMAGE = "data:image/png;base64,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";
+    const SAMPLE_IMAGE = "defaults/usa.png";
 
     const upload = document.getElementById("image-upload");
     const imageSize = document.getElementById("image-size");
@@ -887,11 +887,11 @@
 
     resetButton.addEventListener("click", () => {
       upload.value = "";
-      imageSize.value = "100";
-      imageSizeValue.textContent = "100";
+      imageSize.value = "45";
+      imageSizeValue.textContent = "45";
       threshold.value = "100";
       visualStrength.value = "60";
-      invert.checked = false;
+      invert.checked = true;
       largestOnly.checked = false;
       showGrid.checked = true;
       showNodes.checked = false;
