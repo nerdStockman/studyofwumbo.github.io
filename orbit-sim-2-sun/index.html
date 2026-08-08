@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/png" href="../star.png">
+<title>Solar System Delta-V Explorer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>Solar System Delta-V Explorer</h1>
+    <div class="muted">Escape vs. solar-impact orbital mechanics</div>
+  </header>
+
+  <div class="card intro-text fade-in">
+    <p>
+      It is in fact easier to escape the Solar System than to impact the Sun. Use the slider below to explore
+      the effect of delta-v on a circular orbit 1 AU from the Sun, or click the buttons to snap to the minimum
+      delta-v required for impact or escape.
+    </p>
+  </div>
+
+  <div class="card controls">
+    <label for="dvSlider">Tangential delta-v:</label>
+    <input type="range" id="dvSlider" min="-35" max="25" step="0.01" value="0">
+    <span id="dvValue">0.00 km/s</span>
+
+    <div>Initial circular orbit:</div>
+    <div>1.00 AU</div>
+    <div id="circularSpeedValue">29.78 km/s</div>
+
+    <div>Presets:</div>
+    <div class="preset-buttons">
+      <button id="circularBtn">Circular</button>
+      <button id="impactBtn">Minimum impact</button>
+      <button id="escapeBtn">Minimum escape</button>
+    </div>
+    <div></div>
+  </div>
+
+  <div id="statusCard" class="card status-card bound">
+    <div id="statusTitle" class="status-title">Circular orbit</div>
+    <div id="statusText" class="muted">Bound, non-impacting heliocentric orbit.</div>
+  </div>
+
+  <div class="card canvas">
+    <canvas id="orbitCanvas" width="800" height="800"></canvas>
+  </div>
+
+  <div class="card parameters-card">
+    <div class="parameters-title">Orbital parameters</div>
+    <div class="parameters-grid">
+      <div class="parameter"><span>Post-burn speed</span><strong id="postBurnSpeed">—</strong></div>
+      <div class="parameter"><span>Specific orbital energy</span><strong id="energyValue">—</strong></div>
+      <div class="parameter"><span>Eccentricity</span><strong id="eccentricityValue">—</strong></div>
+      <div class="parameter"><span>Semimajor axis</span><strong id="smaValue">—</strong></div>
+      <div class="parameter"><span>Periapsis</span><strong id="periapsisValue">—</strong></div>
+      <div class="parameter"><span>Apoapsis</span><strong id="apoapsisValue">—</strong></div>
+      <div class="parameter"><span>Hyperbolic excess speed</span><strong id="vinfValue">—</strong></div>
+      <div class="parameter"><span>Orbital period</span><strong id="periodValue">—</strong></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
