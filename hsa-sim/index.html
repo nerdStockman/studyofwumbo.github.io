@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="icon" type="image/png" href="../star.png">
+<title>HSA Sim</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>HSA Sim</h1>
+    <div class="muted">The future value of paying a medical bill three different ways</div>
+  </header>
+
+  <div class="card intro-text fade-in">
+    <p>
+      A Health Savings Account can help twice: contributions avoid income tax, and money left invested in the HSA can grow tax-free.
+      This simulator follows one paycheck and one medical expense forward through time. The no-HSA case is the baseline; the two HSA
+      strategies are compared by how many extra dollars they produce above that baseline.
+    </p>
+  </div>
+
+  <div class="card controls">
+    <div class="control-row">
+      <label for="yearsInput">Years invested</label>
+      <input type="range" id="yearsInput" min="1" max="40" step="1" value="10">
+      <span class="control-value" id="yearsValue">10 years</span>
+    </div>
+
+    <div class="control-row">
+      <label for="returnInput">Annual market return</label>
+      <input type="range" id="returnInput" min="0" max="12" step="0.1" value="7">
+      <span class="control-value" id="returnValue">7.0%</span>
+    </div>
+
+    <div class="control-actions">
+      <button id="resetBtn">Reset defaults</button>
+    </div>
+  </div>
+
+  <div class="card assumption-card">
+    <div class="assumption-title">What the model assumes</div>
+    <p>
+      The example uses a fixed $2,333.33 gross paycheck, $1,000 qualified medical expense, 25% paycheck tax rate, and 15% tax on brokerage gains.
+      HSA contributions are made pre-tax. Brokerage principal is not taxed again at withdrawal, but its gains are taxed at 15%.
+      HSA growth is untaxed, and HSA Receipt Hoarding assumes the final HSA withdrawal is fully covered by saved qualified medical receipts.
+      The paycheck is intentionally set so that, after the HSA contribution, tax, and medical bill, HSA Receipt Hoarding has no cash left to invest in brokerage.
+      Investment fees, inflation, contribution limits, state-specific HSA rules, and tax-bracket changes are not modeled.
+    </p>
+  </div>
+
+  <section class="scenario-grid">
+    <article class="card scenario baseline">
+      <div class="scenario-number">1</div>
+      <h2>No HSA</h2>
+      <p class="scenario-description">
+        The full paycheck is taxed. The medical bill is paid with after-tax cash. Everything left is invested in a taxable brokerage account.
+      </p>
+      <div class="scenario-period">
+        <div class="period-title">Year 0</div>
+        <div class="math-flow" id="baselineYear0"></div>
+      </div>
+      <div class="scenario-period ending-period">
+        <div class="period-title" id="baselineEndTitle">Year 10</div>
+        <div class="math-flow end-flow" id="baselineYearEnd"></div>
+      </div>
+      <div class="comparison neutral">Baseline</div>
+    </article>
+
+    <article class="card scenario direct">
+      <div class="scenario-number">2</div>
+      <h2>HSA Direct Pay</h2>
+      <p class="scenario-description">
+        The medical expense is contributed to the HSA pre-tax and immediately paid from it. The remaining paycheck is taxed and invested in brokerage.
+      </p>
+      <div class="scenario-period">
+        <div class="period-title">Year 0</div>
+        <div class="math-flow" id="directYear0"></div>
+      </div>
+      <div class="scenario-period ending-period">
+        <div class="period-title" id="directEndTitle">Year 10</div>
+        <div class="math-flow end-flow" id="directYearEnd"></div>
+      </div>
+      <div class="comparison positive" id="directComparison">—</div>
+    </article>
+
+    <article class="card scenario hoard">
+      <div class="scenario-number">3</div>
+      <h2>HSA Receipt Hoarding</h2>
+      <p class="scenario-description">
+        The HSA contribution stays invested. The medical bill is paid with after-tax cash, preserving the receipt for a tax-free HSA withdrawal later.
+      </p>
+      <div class="scenario-period">
+        <div class="period-title">Year 0</div>
+        <div class="math-flow" id="hoardYear0"></div>
+      </div>
+      <div class="scenario-period ending-period">
+        <div class="period-title" id="hoardEndTitle">Year 10</div>
+        <div class="math-flow end-flow" id="hoardYearEnd"></div>
+      </div>
+      <div class="comparison positive" id="hoardComparison">—</div>
+    </article>
+  </section>
+
+  <div class="card benefit-card">
+    <div class="benefit-heading">
+      <div>
+        <h2>HSA Benefit</h2>
+        <p class="muted">Value above the No HSA baseline if everything were withdrawn at the end of each year.</p>
+      </div>
+      <div class="chart-legend">
+        <span><i class="legend-line direct-line"></i>HSA Direct Pay</span>
+        <span><i class="legend-line hoard-line"></i>HSA Receipt Hoarding</span>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="benefitChart" aria-label="HSA benefit over time"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
