@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/png" href="../star.png">
+  <title>Treadmill Blackout</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="home-bar">
+    <a href="../index.html" class="home-link">
+      <img src="../star.png" alt="Home" class="home-icon">
+      <span>Home</span>
+    </a>
+  </div>
+
+  <header>
+    <h1>Treadmill Blackout</h1>
+    <div class="muted">
+      Generate every whole-number speed and incline combination your treadmill can produce, then black out each square as you complete it.
+      Difficulty is estimated from treadmill speed and grade on a consistent 1–10 scale.
+    </div>
+  </header>
+
+  <section class="card setup-card">
+    <div class="card-heading">
+      <div>
+        <h2>Setup</h2>
+        <div class="muted">Enter your treadmill's whole-number limits and the prescribed distance for each square.</div>
+      </div>
+    </div>
+
+    <div class="setup-grid">
+      <label class="field">
+        <span>Minimum speed <span class="unit">mph</span></span>
+        <input id="minSpeed" type="number" min="0" max="20" step="1" value="2">
+      </label>
+      <label class="field">
+        <span>Maximum speed <span class="unit">mph</span></span>
+        <input id="maxSpeed" type="number" min="0" max="20" step="1" value="10">
+      </label>
+      <label class="field">
+        <span>Minimum incline <span class="unit">%</span></span>
+        <input id="minIncline" type="number" min="-10" max="40" step="1" value="0">
+      </label>
+      <label class="field">
+        <span>Maximum incline <span class="unit">%</span></span>
+        <input id="maxIncline" type="number" min="-10" max="40" step="1" value="15">
+      </label>
+      <label class="field">
+        <span>Prescribed distance <span class="unit">mi</span></span>
+        <input id="targetDistance" type="number" min="0.01" max="100" step="0.01" value="1">
+      </label>
+    </div>
+
+    <div class="setup-actions">
+      <button id="generateBtn">Generate Grid</button>
+      <span id="setupMessage" class="muted status-message" aria-live="polite"></span>
+    </div>
+  </section>
+
+  <section id="randomCard" class="card random-card hidden">
+    <div class="random-copy">
+      <h2>Random Select</h2>
+      <div class="muted">Choose a square within your desired difficulty range.</div>
+
+      <div class="difficulty-range">
+        <label class="field compact-field">
+          <span>Minimum difficulty</span>
+          <select id="minDifficulty"></select>
+        </label>
+        <div class="range-dash">to</div>
+        <label class="field compact-field">
+          <span>Maximum difficulty</span>
+          <select id="maxDifficulty"></select>
+        </label>
+      </div>
+
+      <div class="eligibility-options">
+        <label class="check-row"><input id="allowPartial" type="checkbox"> <span>Allow partially completed</span></label>
+        <label class="check-row"><input id="allowCompleted" type="checkbox"> <span>Allow completed</span></label>
+      </div>
+
+      <button id="randomBtn">Random Select</button>
+      <div id="randomMessage" class="muted random-message" aria-live="polite"></div>
+    </div>
+
+    <div id="randomResult" class="random-result empty">
+      <div class="result-kicker">NEXT SQUARE</div>
+      <div id="resultMain" class="result-main">—</div>
+      <div id="resultDifficulty" class="result-difficulty">Pick a difficulty range</div>
+    </div>
+  </section>
+
+  <section id="gridCard" class="card grid-card hidden">
+    <div class="grid-topline">
+      <div>
+        <h2>Blackout Grid - click to mark complete</h2>
+        <div id="progressText" class="muted">0 of 0 completed</div>
+      </div>
+      <div class="grid-actions">
+        <button id="saveBtn" class="secondary-btn">Save Progress</button>
+        <button id="loadBtn" class="secondary-btn">Load Progress</button>
+        <button id="resetBtn" class="secondary-btn">Reset Completions</button>
+      </div>
+    </div>
+    <div id="saveMessage" class="muted save-message" aria-live="polite"></div>
+
+    <div class="legend-wrap" aria-label="Difficulty legend">
+      <span class="legend-label">Difficulty</span>
+      <div id="legend" class="legend"></div>
+    </div>
+
+    <div class="grid-scroll">
+      <div id="gridMount"></div>
+    </div>
+    <div class="axis-note muted">Click a square to record the distance you completed. Partial attempts remain available for future improvement.</div>
+  </section>
+</div>
+
+<div id="distanceModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="distanceModalTitle">
+  <div class="modal-card">
+    <h2 id="distanceModalTitle">Record Distance</h2>
+    <div id="distanceModalCombo" class="muted modal-combo"></div>
+    <label class="field">
+      <span>Distance completed <span class="unit">mi</span></span>
+      <input id="distanceInput" type="number" min="0" step="0.01" value="1">
+    </label>
+    <div id="distanceHint" class="muted modal-hint"></div>
+    <div class="modal-actions">
+      <button id="distanceSaveBtn">Save</button>
+      <button id="distanceClearBtn" class="secondary-btn">Clear Attempt</button>
+      <button id="distanceCancelBtn" class="secondary-btn">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
