@@ -20,9 +20,19 @@
     <h1>Treadmill Blackout</h1>
     <div class="muted">
       Generate every whole-number speed and incline combination your treadmill can produce, then black out each square as you complete it.
-      Difficulty is estimated from treadmill speed and grade on a consistent 1–10 scale. Here is a video explanation of this page: https://youtu.be/HFoifIO9IDY
+      Difficulty ranks the generated speed/incline combinations by estimated workload, then divides them into ten percentile bands: 1 is the easiest 10% and 10 is the hardest 10%. 
     </div>
   </header>
+  
+  <!-- Video Card -->
+  <div class="card media-card">
+    <a href="https://youtu.be/N2AyaiAblRM " target="_blank" class="media-button">
+      <img src="../images/treadmill.png" alt="YouTube" class="media-logo">
+      <div class="media-text">
+        <span class="media-title">Video explaining this page</span>
+      </div>
+    </a>
+  </div>
 
   <section class="card setup-card">
     <div class="card-heading">
@@ -103,13 +113,14 @@
       <div class="grid-actions">
         <button id="saveBtn" class="secondary-btn">Save Progress</button>
         <button id="loadBtn" class="secondary-btn">Load Progress</button>
+        <input id="loadFileInput" type="file" accept="application/json,.json" class="hidden">
         <button id="resetBtn" class="secondary-btn">Reset Completions</button>
       </div>
     </div>
-    <div id="saveMessage" class="muted save-message" aria-live="polite"></div>
+    <div id="saveMessage" class="muted save-message" aria-live="polite">Save downloads a portable JSON file. Load restores one of those files.</div>
 
     <div class="legend-wrap" aria-label="Difficulty legend">
-      <span class="legend-label">Difficulty</span>
+      <span class="legend-label">Difficulty percentile</span>
       <div id="legend" class="legend"></div>
     </div>
 

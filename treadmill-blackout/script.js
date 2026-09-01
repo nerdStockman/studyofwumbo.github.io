@@ -1,54 +1,94 @@
 const $ = (id) => document.getElementById(id);
 
 const els = {
-  minSpeed: $('minSpeed'), maxSpeed: $('maxSpeed'), minIncline: $('minIncline'), maxIncline: $('maxIncline'), targetDistance: $('targetDistance'),
-  generateBtn: $('generateBtn'), setupMessage: $('setupMessage'), randomCard: $('randomCard'), gridCard: $('gridCard'),
-  minDifficulty: $('minDifficulty'), maxDifficulty: $('maxDifficulty'), allowPartial: $('allowPartial'), allowCompleted: $('allowCompleted'),
-  randomBtn: $('randomBtn'), randomMessage: $('randomMessage'), randomResult: $('randomResult'), resultMain: $('resultMain'), resultDifficulty: $('resultDifficulty'),
-  gridMount: $('gridMount'), progressText: $('progressText'), resetBtn: $('resetBtn'), legend: $('legend'),
-  saveBtn: $('saveBtn'), loadBtn: $('loadBtn'), saveMessage: $('saveMessage'),
-  distanceModal: $('distanceModal'), distanceModalCombo: $('distanceModalCombo'), distanceInput: $('distanceInput'), distanceHint: $('distanceHint'),
-  distanceSaveBtn: $('distanceSaveBtn'), distanceClearBtn: $('distanceClearBtn'), distanceCancelBtn: $('distanceCancelBtn')
+  minSpeed: $('minSpeed'),
+  maxSpeed: $('maxSpeed'),
+  minIncline: $('minIncline'),
+  maxIncline: $('maxIncline'),
+  targetDistance: $('targetDistance'),
+  generateBtn: $('generateBtn'),
+  setupMessage: $('setupMessage'),
+  randomCard: $('randomCard'),
+  gridCard: $('gridCard'),
+  minDifficulty: $('minDifficulty'),
+  maxDifficulty: $('maxDifficulty'),
+  allowPartial: $('allowPartial'),
+  allowCompleted: $('allowCompleted'),
+  randomBtn: $('randomBtn'),
+  randomMessage: $('randomMessage'),
+  randomResult: $('randomResult'),
+  resultMain: $('resultMain'),
+  resultDifficulty: $('resultDifficulty'),
+  gridMount: $('gridMount'),
+  progressText: $('progressText'),
+  resetBtn: $('resetBtn'),
+  saveBtn: $('saveBtn'),
+  loadBtn: $('loadBtn'),
+  loadFileInput: $('loadFileInput'),
+  saveMessage: $('saveMessage'),
+  legend: $('legend'),
+  distanceModal: $('distanceModal'),
+  distanceModalCombo: $('distanceModalCombo'),
+  distanceInput: $('distanceInput'),
+  distanceHint: $('distanceHint'),
+  distanceSaveBtn: $('distanceSaveBtn'),
+  distanceClearBtn: $('distanceClearBtn'),
+  distanceCancelBtn: $('distanceCancelBtn')
 };
 
-const SAVE_KEY = 'wumbo-treadmill-blackout-v1';
+
+// Ten-step spectrum matched to the Wumbo household-wealth palette:
+// cyan/light blue through royal blue and violet to bright magenta.
+const DIFFICULTY_COLORS = [
+  '#41c9ff', '#36a9ff', '#3c6cff', '#4c45ff', '#5d2eff',
+  '#741dff', '#8a13ff', '#9b10ff', '#c013ff', '#e81cff'
+];
+
 let gridItems = [];
-let progress = new Map(); // key -> miles completed
+let attempts = new Map(); // key -> miles completed; full completion is >= target distance
 let selectedKey = null;
-let activeEditKey = null;
+let activeModalKey = null;
 let currentSetup = null;
 
-// ACSM-style treadmill oxygen-cost estimate, mapped onto a simple 1–10 challenge scale.
-// Walking equation below 4 mph; running equation from 4 mph upward.
-function difficultyFor(speedMph, inclinePct) {
-  const speedMpm = speedMph * 26.8224;
-  const grade = inclinePct / 100;
-  let vo2;
-  if (speedMph < 4) vo2 = 0.1 * speedMpm + 1.8 * speedMpm * grade + 3.5;
-  else vo2 = 0.2 * speedMpm + 0.9 * speedMpm * grade + 3.5;
-  const mets = Math.max(1, vo2 / 3.5);
-  const normalized = Math.sqrt(Math.max(0, (mets - 2) / 16));
-  return Math.max(1, Math.min(10, Math.round(1 + normalized * 9)));
+function comboKey(speed, incline) {
+  return `${speed}|${incline}`;
+}
+
+function integerValue(input) {
+  return Number.parseInt(input.value, 10);
+}
+
+function numericValue(input) {
+  return Number.parseFloat(input.value);
 }
 
 function difficultyColor(level) {
-  const hue = 125 - (level - 1) * 13.4;
-  return `hsl(${hue} 78% 62%)`;
+  return DIFFICULTY_COLORS[Math.max(1, Math.min(10, level)) - 1];
 }
 
-function comboKey(speed, incline) { return `${speed}|${incline}`; }
-function integerValue(input) { return Number.parseInt(input.value, 10); }
-function numericValue(input) { return Number.parseFloat(input.value); }
-function completedDistance(key) { return progress.get(key) || 0; }
-function completionRatio(key) {
-  if (!currentSetup?.targetDistance) return 0;
-  return Math.min(1, completedDistance(key) / currentSetup.targetDistance);
+// A smooth treadmill workload score used only to rank cells against each other.
+// Speed raises the horizontal cost; incline adds a vertical-work term that grows
+// with speed. This avoids the walking/running equation discontinuity around 4 mph.
+function workloadScore(speedMph, inclinePct) {
+  const speedMpm = speedMph * 26.8224;
+  const grade = inclinePct / 100;
+  const horizontalCost = 0.16 * speedMpm;
+  const verticalCost = 1.15 * speedMpm * grade;
+  return 3.5 + horizontalCost + verticalCost;
 }
-function completionState(key) {
-  const ratio = completionRatio(key);
-  if (ratio >= 1) return 'completed';
-  if (ratio > 0) return 'partial';
-  return 'uncompleted';
+
+function assignDifficultyDeciles(items) {
+  const ranked = [...items].sort((a, b) => {
+    if (a.workload !== b.workload) return a.workload - b.workload;
+    if (a.speed !== b.speed) return a.speed - b.speed;
+    return a.incline - b.incline;
+  });
+
+  const n = ranked.length;
+  ranked.forEach((item, index) => {
+    // Rank percentile, giving approximately 10% of cells to each level.
+    item.difficulty = Math.min(10, Math.floor((index * 10) / n) + 1);
+  });
 }
 
 function validateSetup() {
@@ -57,17 +97,18 @@ function validateSetup() {
   const minIncline = integerValue(els.minIncline);
   const maxIncline = integerValue(els.maxIncline);
   const targetDistance = numericValue(els.targetDistance);
-  const values = [minSpeed, maxSpeed, minIncline, maxIncline, targetDistance];
+  const values = [minSpeed, maxSpeed, minIncline, maxIncline];
 
-  if (values.some(Number.isNaN)) return { error: 'Enter all treadmill limits and a prescribed distance.' };
+  if (values.some(Number.isNaN)) return { error: 'Enter all four treadmill limits.' };
+  if (!Number.isFinite(targetDistance) || targetDistance <= 0) return { error: 'Prescribed distance must be greater than 0.' };
   if (minSpeed < 0 || maxSpeed > 20) return { error: 'Speed must be between 0 and 20 mph.' };
   if (minIncline < -10 || maxIncline > 40) return { error: 'Incline must be between -10% and 40%.' };
-  if (targetDistance <= 0 || targetDistance > 100) return { error: 'Prescribed distance must be greater than 0 and no more than 100 miles.' };
   if (minSpeed > maxSpeed) return { error: 'Minimum speed cannot exceed maximum speed.' };
   if (minIncline > maxIncline) return { error: 'Minimum incline cannot exceed maximum incline.' };
 
   const count = (maxSpeed - minSpeed + 1) * (maxIncline - minIncline + 1);
   if (count > 500) return { error: 'That grid is very large. Choose limits producing 500 or fewer squares.' };
+
   return { minSpeed, maxSpeed, minIncline, maxIncline, targetDistance };
 }
 
@@ -75,9 +116,14 @@ function populateDifficultySelects() {
   els.minDifficulty.innerHTML = '';
   els.maxDifficulty.innerHTML = '';
   for (let i = 1; i <= 10; i++) {
-    const a = document.createElement('option'); a.value = i; a.textContent = i;
-    const b = document.createElement('option'); b.value = i; b.textContent = i;
-    els.minDifficulty.appendChild(a); els.maxDifficulty.appendChild(b);
+    const a = document.createElement('option');
+    a.value = i;
+    a.textContent = i;
+    const b = document.createElement('option');
+    b.value = i;
+    b.textContent = i;
+    els.minDifficulty.appendChild(a);
+    els.maxDifficulty.appendChild(b);
   }
   els.minDifficulty.value = '1';
   els.maxDifficulty.value = '10';
@@ -98,38 +144,54 @@ function buildGridItems(setup) {
   const items = [];
   for (let incline = setup.minIncline; incline <= setup.maxIncline; incline++) {
     for (let speed = setup.minSpeed; speed <= setup.maxSpeed; speed++) {
-      items.push({ speed, incline, difficulty: difficultyFor(speed, incline), key: comboKey(speed, incline) });
+      items.push({
+        speed,
+        incline,
+        key: comboKey(speed, incline),
+        workload: workloadScore(speed, incline),
+        difficulty: 1
+      });
     }
   }
+  assignDifficultyDeciles(items);
   return items;
 }
 
-function generateGrid() {
+function generateGrid({ preserveAttempts = false } = {}) {
   const setup = validateSetup();
   els.setupMessage.classList.remove('error');
   if (setup.error) {
     els.setupMessage.textContent = setup.error;
     els.setupMessage.classList.add('error');
-    return;
+    return false;
   }
 
   currentSetup = setup;
   gridItems = buildGridItems(setup);
-  progress = new Map();
   selectedKey = null;
+  if (!preserveAttempts) attempts = new Map();
+
+  // Remove attempts that are no longer part of the regenerated grid and clamp
+  // saved distances to the current prescribed distance.
+  const validKeys = new Set(gridItems.map(item => item.key));
+  attempts = new Map([...attempts.entries()]
+    .filter(([key]) => validKeys.has(key))
+    .map(([key, distance]) => [key, Math.max(0, Math.min(Number(distance) || 0, setup.targetDistance))]));
+
   renderGrid(setup);
   updateProgress();
   clearRandomResult();
   els.gridCard.classList.remove('hidden');
   els.randomCard.classList.remove('hidden');
-  els.setupMessage.textContent = `${gridItems.length} squares generated · ${formatMiles(setup.targetDistance)} mi each.`;
-  els.saveMessage.textContent = '';
+  els.setupMessage.textContent = `${gridItems.length} squares generated · difficulty divided into grid percentiles.`;
+  updateRangeDimming();
+  return true;
 }
 
-function renderGrid({ minSpeed, maxSpeed, minIncline, maxIncline }) {
-  const speeds = Array.from({ length: maxSpeed - minSpeed + 1 }, (_, i) => minSpeed + i);
-  const inclines = Array.from({ length: maxIncline - minIncline + 1 }, (_, i) => maxIncline - i);
-  const itemMap = new Map(gridItems.map(item => [item.key, item]));
+function renderGrid(setup) {
+  const speeds = Array.from({ length: setup.maxSpeed - setup.minSpeed + 1 }, (_, i) => setup.minSpeed + i);
+  const inclines = Array.from({ length: setup.maxIncline - setup.minIncline + 1 }, (_, i) => setup.maxIncline - i);
+  const itemByKey = new Map(gridItems.map(item => [item.key, item]));
   const grid = document.createElement('div');
   grid.className = 'blackout-grid';
   grid.style.setProperty('--cols', speeds.length);
@@ -140,24 +202,38 @@ function renderGrid({ minSpeed, maxSpeed, minIncline, maxIncline }) {
   grid.appendChild(corner);
 
   speeds.forEach(speed => {
-    const h = document.createElement('div'); h.className = 'speed-header'; h.textContent = `${speed} mph`; grid.appendChild(h);
+    const h = document.createElement('div');
+    h.className = 'speed-header';
+    h.textContent = `${speed} mph`;
+    grid.appendChild(h);
   });
 
   inclines.forEach(incline => {
-    const y = document.createElement('div'); y.className = 'incline-header'; y.textContent = `${incline}%`; grid.appendChild(y);
+    const y = document.createElement('div');
+    y.className = 'incline-header';
+    y.textContent = `${incline}%`;
+    grid.appendChild(y);
+
     speeds.forEach(speed => {
-      const item = itemMap.get(comboKey(speed, incline));
+      const item = itemByKey.get(comboKey(speed, incline));
       const cell = document.createElement('div');
       cell.className = 'grid-cell';
       cell.dataset.key = item.key;
+      cell.dataset.difficulty = String(item.difficulty);
       cell.style.background = difficultyColor(item.difficulty);
       cell.setAttribute('role', 'button');
       cell.setAttribute('tabindex', '0');
-      cell.setAttribute('aria-label', `${speed} miles per hour at ${incline} percent incline, difficulty ${item.difficulty}`);
-      cell.innerHTML = `<span class="combo">${speed} / ${incline}%</span><span class="difficulty">${item.difficulty}</span>`;
+      cell.innerHTML = `
+        <span class="combo">${speed} / ${incline}%</span>
+        <span class="difficulty">${item.difficulty}</span>
+        <span class="completion-mark"></span>
+      `;
       cell.addEventListener('click', () => openDistanceModal(item.key));
-      cell.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDistanceModal(item.key); }
+      cell.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openDistanceModal(item.key);
+        }
       });
       grid.appendChild(cell);
     });
@@ -168,73 +244,118 @@ function renderGrid({ minSpeed, maxSpeed, minIncline, maxIncline }) {
   syncCellStates();
 }
 
+function completionFor(key) {
+  const distance = attempts.get(key) || 0;
+  const target = currentSetup?.targetDistance || 1;
+  return Math.max(0, Math.min(1, distance / target));
+}
+
+function statusFor(key) {
+  const fraction = completionFor(key);
+  if (fraction >= 1 - 1e-9) return 'completed';
+  if (fraction > 0) return 'partial';
+  return 'unattempted';
+}
+
+function syncCellStates() {
+  document.querySelectorAll('.grid-cell').forEach(cell => {
+    const key = cell.dataset.key;
+    const status = statusFor(key);
+    const fraction = completionFor(key);
+    cell.classList.toggle('completed', status === 'completed');
+    cell.classList.toggle('partial', status === 'partial');
+    cell.classList.toggle('selected', selectedKey === key);
+
+    const mark = cell.querySelector('.completion-mark');
+    if (status === 'completed') {
+      mark.textContent = '✓';
+    } else if (status === 'partial') {
+      mark.textContent = `${Math.round(fraction * 100)}%`;
+    } else {
+      mark.textContent = '';
+    }
+
+    const item = gridItems.find(x => x.key === key);
+    const distance = attempts.get(key) || 0;
+    cell.setAttribute(
+      'aria-label',
+      `${item.speed} miles per hour at ${item.incline} percent incline, difficulty percentile ${item.difficulty}, ${Math.round(fraction * 100)} percent complete${distance ? `, ${distance} miles recorded` : ''}`
+    );
+  });
+  updateRangeDimming();
+}
+
+function updateRangeDimming() {
+  const minD = Number(els.minDifficulty.value || 1);
+  const maxD = Number(els.maxDifficulty.value || 10);
+  document.querySelectorAll('.grid-cell').forEach(cell => {
+    const difficulty = Number(cell.dataset.difficulty);
+    cell.classList.toggle('outside-range', minD > maxD || difficulty < minD || difficulty > maxD);
+  });
+}
+
+function updateProgress() {
+  const total = gridItems.length;
+  let completedCount = 0;
+  let partialCount = 0;
+  let equivalent = 0;
+
+  gridItems.forEach(item => {
+    const fraction = completionFor(item.key);
+    equivalent += fraction;
+    if (fraction >= 1 - 1e-9) completedCount++;
+    else if (fraction > 0) partialCount++;
+  });
+
+  const pct = total ? Math.round((equivalent / total) * 100) : 0;
+  const partialText = partialCount ? ` · ${partialCount} partial` : '';
+  els.progressText.textContent = `${completedCount} of ${total} completed${partialText} · ${pct}% total blackout progress`;
+}
+
 function openDistanceModal(key) {
+  if (!currentSetup) return;
   const item = gridItems.find(x => x.key === key);
-  if (!item || !currentSetup) return;
-  activeEditKey = key;
-  const existing = completedDistance(key);
-  els.distanceModalCombo.textContent = `${item.speed} mph · ${item.incline}% incline · difficulty ${item.difficulty}`;
+  if (!item) return;
+
+  activeModalKey = key;
+  const currentDistance = attempts.get(key) || 0;
+  els.distanceModalCombo.textContent = `${item.speed} mph · ${item.incline}% incline · Difficulty ${item.difficulty}`;
   els.distanceInput.max = String(currentSetup.targetDistance);
-  els.distanceInput.value = existing > 0 ? String(existing) : String(currentSetup.targetDistance);
-  els.distanceHint.textContent = `Prescribed distance: ${formatMiles(currentSetup.targetDistance)} mi. Enter less for a partial completion.`;
+  els.distanceInput.value = currentDistance ? String(currentDistance) : String(currentSetup.targetDistance);
+  els.distanceHint.textContent = `Enter up to ${formatDistance(currentSetup.targetDistance)} mi. Less than the prescribed distance is recorded as a partial completion.`;
   els.distanceModal.classList.remove('hidden');
-  requestAnimationFrame(() => { els.distanceInput.focus(); els.distanceInput.select(); });
+  window.setTimeout(() => {
+    els.distanceInput.focus();
+    els.distanceInput.select();
+  }, 0);
 }
 
 function closeDistanceModal() {
-  activeEditKey = null;
+  activeModalKey = null;
   els.distanceModal.classList.add('hidden');
 }
 
 function saveDistanceAttempt() {
-  if (!activeEditKey || !currentSetup) return;
-  const distance = numericValue(els.distanceInput);
-  if (Number.isNaN(distance) || distance < 0 || distance > currentSetup.targetDistance) {
-    els.distanceHint.textContent = `Enter a distance from 0 to ${formatMiles(currentSetup.targetDistance)} miles.`;
+  if (!activeModalKey || !currentSetup) return;
+  const value = numericValue(els.distanceInput);
+  if (!Number.isFinite(value) || value < 0 || value > currentSetup.targetDistance) {
+    els.distanceHint.textContent = `Enter a distance from 0 to ${formatDistance(currentSetup.targetDistance)} mi.`;
+    els.distanceHint.classList.add('error');
     return;
   }
-  if (distance <= 0) progress.delete(activeEditKey);
-  else progress.set(activeEditKey, distance);
+  els.distanceHint.classList.remove('error');
+  if (value <= 0) attempts.delete(activeModalKey);
+  else attempts.set(activeModalKey, value);
   closeDistanceModal();
   syncCellStates();
   updateProgress();
 }
 
 function clearDistanceAttempt() {
-  if (activeEditKey) progress.delete(activeEditKey);
+  if (activeModalKey) attempts.delete(activeModalKey);
   closeDistanceModal();
   syncCellStates();
   updateProgress();
-}
-
-function syncCellStates() {
-  document.querySelectorAll('.grid-cell').forEach(cell => {
-    const key = cell.dataset.key;
-    const state = completionState(key);
-    const ratio = completionRatio(key);
-    cell.classList.toggle('completed', state === 'completed');
-    cell.classList.toggle('partial', state === 'partial');
-    cell.classList.toggle('selected', selectedKey === key);
-    if (state === 'partial') cell.dataset.percent = `${Math.round(ratio * 100)}%`;
-    else delete cell.dataset.percent;
-    cell.setAttribute('aria-pressed', state === 'completed' ? 'true' : 'false');
-  });
-}
-
-function updateProgress() {
-  const total = gridItems.length;
-  let done = 0;
-  let partial = 0;
-  let equivalent = 0;
-  gridItems.forEach(item => {
-    const ratio = completionRatio(item.key);
-    equivalent += ratio;
-    if (ratio >= 1) done++;
-    else if (ratio > 0) partial++;
-  });
-  const pct = total ? Math.round(equivalent / total * 100) : 0;
-  const partialText = partial ? ` · ${partial} partial` : '';
-  els.progressText.textContent = `${done} of ${total} completed${partialText} · ${pct}% total blackout`;
 }
 
 function clearRandomResult() {
@@ -248,159 +369,173 @@ function clearRandomResult() {
   syncCellStates();
 }
 
+function isEligibleByCompletion(item) {
+  const status = statusFor(item.key);
+  if (status === 'completed') return els.allowCompleted.checked;
+  if (status === 'partial') return els.allowPartial.checked;
+  return true;
+}
+
 function randomSelect() {
   const minD = Number(els.minDifficulty.value);
   const maxD = Number(els.maxDifficulty.value);
   els.randomMessage.classList.remove('error');
+
   if (minD > maxD) {
     els.randomMessage.textContent = 'Minimum difficulty cannot exceed maximum difficulty.';
     els.randomMessage.classList.add('error');
+    updateRangeDimming();
     return;
   }
 
-  const eligible = gridItems.filter(item => {
-    if (item.difficulty < minD || item.difficulty > maxD) return false;
-    const state = completionState(item.key);
-    if (state === 'completed') return els.allowCompleted.checked;
-    if (state === 'partial') return els.allowPartial.checked;
-    return true;
-  });
+  const eligible = gridItems.filter(item =>
+    item.difficulty >= minD &&
+    item.difficulty <= maxD &&
+    isEligibleByCompletion(item)
+  );
 
   if (!eligible.length) {
     selectedKey = null;
-    els.randomMessage.textContent = 'No eligible squares remain in that difficulty range.';
+    els.randomMessage.textContent = 'No squares match that difficulty range and completion filter.';
     els.randomMessage.classList.add('error');
     syncCellStates();
     return;
   }
 
   const pick = eligible[Math.floor(Math.random() * eligible.length)];
-  const state = completionState(pick.key);
   selectedKey = pick.key;
   els.randomResult.className = 'random-result';
   els.randomResult.style.background = difficultyColor(pick.difficulty);
   els.resultMain.textContent = `${pick.speed} mph · ${pick.incline}%`;
-  const stateText = state === 'completed' ? 'completed' : state === 'partial' ? `${Math.round(completionRatio(pick.key) * 100)}% complete` : 'not yet attempted';
-  els.resultDifficulty.textContent = `Difficulty ${pick.difficulty} · ${stateText}`;
-  els.randomMessage.textContent = `Selected from ${eligible.length} eligible square${eligible.length === 1 ? '' : 's'}.`;
+  els.resultDifficulty.textContent = `Difficulty ${pick.difficulty} · ${eligible.length} eligible square${eligible.length === 1 ? '' : 's'}`;
+
+  const included = ['unattempted'];
+  if (els.allowPartial.checked) included.push('partial');
+  if (els.allowCompleted.checked) included.push('completed');
+  els.randomMessage.textContent = `Selected from ${included.join(', ')} squares.`;
   syncCellStates();
-  // Deliberately do not scroll the page/grid to the selected cell.
 }
 
 function resetCompletions() {
-  progress.clear();
+  attempts.clear();
   clearRandomResult();
   updateProgress();
-  els.saveMessage.textContent = 'Completions reset.';
-  els.saveMessage.classList.remove('error');
+  els.saveMessage.textContent = 'Completion progress cleared.';
 }
 
-function saveProgressLocally() {
-  if (!currentSetup) return;
-  const payload = {
-    version: 1,
+function buildSavePayload() {
+  return {
+    format: 'wumbo-treadmill-blackout',
+    version: 3,
+    savedAt: new Date().toISOString(),
     setup: currentSetup,
-    progress: Object.fromEntries(progress),
+    attempts: Object.fromEntries(attempts),
     random: {
-      minDifficulty: els.minDifficulty.value,
-      maxDifficulty: els.maxDifficulty.value,
+      minDifficulty: Number(els.minDifficulty.value),
+      maxDifficulty: Number(els.maxDifficulty.value),
       allowPartial: els.allowPartial.checked,
       allowCompleted: els.allowCompleted.checked
-    },
-    savedAt: new Date().toISOString()
+    }
   };
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(payload));
-    els.saveMessage.textContent = `Progress saved locally on this browser · ${new Date().toLocaleString()}`;
-    els.saveMessage.classList.remove('error');
-  } catch (err) {
-    els.saveMessage.textContent = 'Could not save progress in this browser.';
-    els.saveMessage.classList.add('error');
-  }
 }
 
-function loadProgressLocally() {
-  els.saveMessage.classList.remove('error');
-  let payload;
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) {
-      els.saveMessage.textContent = 'No locally saved Treadmill Blackout progress was found.';
-      els.saveMessage.classList.add('error');
-      return;
-    }
-    payload = JSON.parse(raw);
-  } catch (err) {
-    els.saveMessage.textContent = 'The local save could not be read.';
-    els.saveMessage.classList.add('error');
-    return;
-  }
+function saveProgress() {
+  if (!currentSetup) return;
 
-  const setup = payload?.setup;
-  if (!setup) {
-    els.saveMessage.textContent = 'The local save is missing setup information.';
-    els.saveMessage.classList.add('error');
-    return;
-  }
+  const payload = buildSavePayload();
+  const json = JSON.stringify(payload, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+
+  link.href = url;
+  link.download = `treadmill-blackout-${date}.json`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  els.saveMessage.textContent = `Save file downloaded · ${link.download}`;
+}
+
+function applyLoadedPayload(payload) {
+  if (!payload || typeof payload !== 'object') throw new Error('Invalid save file');
+  if (payload.format && payload.format !== 'wumbo-treadmill-blackout') throw new Error('Wrong save format');
+
+  const setup = payload.setup;
+  if (!setup) throw new Error('Missing setup');
 
   els.minSpeed.value = setup.minSpeed;
   els.maxSpeed.value = setup.maxSpeed;
   els.minIncline.value = setup.minIncline;
   els.maxIncline.value = setup.maxIncline;
-  els.targetDistance.value = setup.targetDistance;
-  const validated = validateSetup();
-  if (validated.error) {
-    els.saveMessage.textContent = 'The saved setup is no longer valid.';
-    els.saveMessage.classList.add('error');
-    return;
-  }
+  els.targetDistance.value = setup.targetDistance ?? 1;
 
-  currentSetup = validated;
-  gridItems = buildGridItems(validated);
-  const validKeys = new Set(gridItems.map(x => x.key));
-  progress = new Map();
-  Object.entries(payload.progress || {}).forEach(([key, value]) => {
-    const distance = Number(value);
-    if (validKeys.has(key) && Number.isFinite(distance) && distance > 0) {
-      progress.set(key, Math.min(distance, validated.targetDistance));
-    }
-  });
-  selectedKey = null;
+  attempts = new Map(
+    Object.entries(payload.attempts || {}).map(([key, distance]) => [key, Number(distance)])
+  );
 
   if (payload.random) {
-    els.minDifficulty.value = payload.random.minDifficulty || '1';
-    els.maxDifficulty.value = payload.random.maxDifficulty || '10';
+    els.minDifficulty.value = String(payload.random.minDifficulty ?? 1);
+    els.maxDifficulty.value = String(payload.random.maxDifficulty ?? 10);
     els.allowPartial.checked = Boolean(payload.random.allowPartial);
     els.allowCompleted.checked = Boolean(payload.random.allowCompleted);
   }
 
-  renderGrid(validated);
-  updateProgress();
-  clearRandomResult();
-  els.gridCard.classList.remove('hidden');
-  els.randomCard.classList.remove('hidden');
-  els.setupMessage.textContent = `${gridItems.length} squares loaded · ${formatMiles(validated.targetDistance)} mi each.`;
-  const when = payload.savedAt ? new Date(payload.savedAt).toLocaleString() : 'previously';
-  els.saveMessage.textContent = `Loaded local progress saved ${when}.`;
+  if (!generateGrid({ preserveAttempts: true })) throw new Error('Invalid saved setup');
 }
 
-function formatMiles(value) {
+function loadProgress() {
+  els.loadFileInput.value = '';
+  els.loadFileInput.click();
+}
+
+async function loadProgressFile(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const raw = await file.text();
+    const payload = JSON.parse(raw);
+    applyLoadedPayload(payload);
+    els.saveMessage.textContent = `Loaded ${file.name}.`;
+  } catch (error) {
+    console.error(error);
+    els.saveMessage.textContent = 'That file could not be loaded as a Treadmill Blackout save.';
+  }
+}
+
+function formatDistance(value) {
   return Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 });
 }
 
 populateDifficultySelects();
 renderLegend();
-els.generateBtn.addEventListener('click', generateGrid);
+
+els.generateBtn.addEventListener('click', () => generateGrid());
 els.randomBtn.addEventListener('click', randomSelect);
 els.resetBtn.addEventListener('click', resetCompletions);
-els.saveBtn.addEventListener('click', saveProgressLocally);
-els.loadBtn.addEventListener('click', loadProgressLocally);
+els.saveBtn.addEventListener('click', saveProgress);
+els.loadBtn.addEventListener('click', loadProgress);
+els.loadFileInput.addEventListener('change', loadProgressFile);
+els.minDifficulty.addEventListener('change', updateRangeDimming);
+els.maxDifficulty.addEventListener('change', updateRangeDimming);
+els.allowPartial.addEventListener('change', () => { els.randomMessage.textContent = ''; });
+els.allowCompleted.addEventListener('change', () => { els.randomMessage.textContent = ''; });
+
 els.distanceSaveBtn.addEventListener('click', saveDistanceAttempt);
 els.distanceClearBtn.addEventListener('click', clearDistanceAttempt);
 els.distanceCancelBtn.addEventListener('click', closeDistanceModal);
-els.distanceModal.addEventListener('click', e => { if (e.target === els.distanceModal) closeDistanceModal(); });
-els.distanceInput.addEventListener('keydown', e => { if (e.key === 'Enter') saveDistanceAttempt(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !els.distanceModal.classList.contains('hidden')) closeDistanceModal(); });
+els.distanceModal.addEventListener('click', event => {
+  if (event.target === els.distanceModal) closeDistanceModal();
+});
+els.distanceInput.addEventListener('keydown', event => {
+  if (event.key === 'Enter') saveDistanceAttempt();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !els.distanceModal.classList.contains('hidden')) closeDistanceModal();
+});
 
-// Give the page a useful initial state while still leaving setup editable.
+// Useful initial state while keeping setup editable.
 generateGrid();
