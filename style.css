@@ -110,3 +110,20 @@ body {
 .fade-in {
   animation: fadeIn 1.5s ease forwards 0.1s;
 }
+
+/* Small, unobtrusive support link */
+.site-footer {
+  text-align: center;
+  margin: -55px 0 40px;
+  font-size: 0.9rem;
+}
+.site-footer a {
+  color: #cccccc;
+  text-decoration: none;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+.site-footer a:hover, .site-footer a:focus-visible {
+  color: #ffb3ff;
+  text-shadow: 0 0 10px #ff6bff;
+  text-decoration: underline;
+}

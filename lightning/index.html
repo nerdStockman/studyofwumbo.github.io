@@ -1,0 +1,364 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lightning → Thunder Lab</title><link rel="icon" type="image/png" href="../star.png"><style>
+:root{color-scheme:dark;--bg:radial-gradient(circle at center,#0b0020,#000010);--accent:#b66dff;--muted:#b9b3d0;--panel:rgba(255,255,255,.06);--w:980px;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--bg);color:#f5f5f7;display:flex;justify-content:center;padding:28px}.wrap{width:100%;max-width:var(--w)}.home-bar{width:100%;display:flex;align-items:center;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(0,0,0,.1)}.home-link{display:inline-flex;align-items:center;text-decoration:none;color:var(--accent);font-weight:600;font-size:16px}.home-icon{width:32px;height:32px;margin-right:8px;animation:pulseStar 3s ease-in-out infinite;filter:drop-shadow(0 0 6px rgba(124,58,237,.8));border-radius:50%}@keyframes pulseStar{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.15);opacity:.85}}
+header{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap}h1{margin:0;font-size:20px;color:#e0c3ff;font-weight:400}.sub{color:var(--muted);font-size:13px;margin:0}.intro-text{font-size:15px;line-height:1.6;color:var(--muted);text-align:justify;margin-bottom:20px;animation:fadeIn 1.5s ease-in forwards}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:start}.panel,.card{background:var(--panel);padding:16px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.45);margin-bottom:16px;min-width:0}.panel h3{color:#e0c3ff;font-size:15px;font-weight:500;margin:18px 0 10px}canvas{display:block;width:100%;touch-action:none}#scene{border-radius:12px;background:rgba(255,255,255,.05);box-shadow:inset 0 0 20px rgba(0,0,0,.4);cursor:crosshair}#wave{background:rgba(255,255,255,.05);border-radius:12px;height:105px;box-shadow:inset 0 0 20px rgba(0,0,0,.4)}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}button{background:linear-gradient(135deg,#b66dff,#7e5cff);border:none;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:14px}button:hover{opacity:.9}button.active{outline:2px solid #e0c3ff;outline-offset:2px}button.primary{box-shadow:0 0 12px rgba(182,109,255,.25)}label{display:block;margin:13px 0 5px;font-size:13px;color:var(--muted)}input[type=range]{width:100%;accent-color:#b66dff}.val{float:right;color:#e0c3ff}.hint{font-size:12px;line-height:1.5;color:var(--muted)}.status{font-size:13px;color:#e0c3ff;min-height:20px;margin:10px 0}#playhead{color:var(--muted)}.foot{margin-top:12px}@media(max-width:800px){.layout{grid-template-columns:1fr}}@media(max-width:550px){body{padding:14px}.panel,.card{padding:12px}}
+#observer{background:linear-gradient(135deg,#ffda72,#f0a62a);color:#271800;font-weight:650}#observer.active{outline:2px solid #ffe7a0;outline-offset:2px}.preset-label{font-size:13px;color:var(--muted);align-self:center;margin-right:3px}.presets{align-items:center;margin-top:-3px;margin-bottom:14px}
+#erase.active{outline:2px solid #ff8bd1;outline-offset:2px} .reflection-toggle{display:flex;align-items:center;gap:9px;color:#c7f9d2}.reflection-toggle input{accent-color:#69f8a5;width:17px;height:17px}#reflection{accent-color:#69f8a5}.arrival-toggle{display:flex;align-items:center;gap:8px;margin:12px 0;color:#fff0fa;font-size:13px}.arrival-toggle input{accent-color:#ffb9e6;width:16px;height:16px}</style></head><body><main class="wrap"><div class="home-bar"><a href="../index.html" class="home-link"><img src="../star.png" alt="Home" class="home-icon"><span>Home</span></a></div><header><h1>Lightning → Thunder Lab</h1><div class="sub">Acoustic propagation simulator</div></header><div class="card intro-text"><p>Sketch a lightning channel, position an observer on the ground, and listen to the resulting thunder. Sound from each channel segment travels to the observer at the speed of sound, so the shape and size of your lightning determine the timing and character of the rumble. During playback, <strong style="color:#80d7ff">blue wavefronts</strong> show direct sound spreading from the lightning, <strong style="color:#65ff9b">green wavefronts</strong> show sound reflected from the ground, and a <strong style="color:#fff1fa">white expanding circle</strong> marks which parts of the lightning you are hearing at that moment. Those intersections glow nearly white with a hint of pink. The white circle represents direct arrivals, not reflected echoes.</p></div><div class="layout"><section class="panel"><div class="toolbar"><button id="draw" class="active">✏ Draw lightning</button><button id="erase">◯ Eraser</button><button id="undo">Undo stroke</button><button id="clear">Clear</button><button id="observer">◎ Move observer</button></div><div class="toolbar"><button id="saveScene">↓ Save scene</button><button id="loadScene">↑ Load scene</button><input type="file" id="sceneFile" accept=".json,application/json" hidden></div><div class="toolbar presets"><span class="preset-label">Example shapes:</span><button id="preset2">Branched</button><button id="preset1">Vertical</button><button id="preset3">Horizontal</button><button id="preset4">Rumble → Crack</button></div><canvas id="scene" width="900" height="520"></canvas><p class="hint">Draw continuous strokes, adding branches with separate strokes. Use the circular eraser to remove parts of lightning. Save or load your drawing as a JSON file. Presets use repeatable fine-scale jagged channels. Audio and visual wavefronts use independently adjustable stratified samples. The yellow dot is the observer. The green line is the ground. Blue waves show direct sound; neon-green waves show ground-reflected sound. No waves are drawn underground.</p><label class="arrival-toggle"><input type="checkbox" id="arrivalCircle" checked> Show acoustic arrival circle</label><h3>Received pressure waveform <span id="playhead"></span></h3><canvas id="wave" width="900" height="105"></canvas><div class="toolbar foot"><button class="primary" id="generate">Generate thunder</button><button id="play">▶ Play thunder + animation</button><button id="stop">■ Stop</button><button id="download">↓ Download WAV</button></div><div class="status" id="status">Ready. Try the Branched preset (fixed fine-scale geometry).</div></section><aside class="panel"><h3 style="margin-top:0">Physical model</h3><label>Scene width <span class="val" id="scaleVal"></span></label><input id="scale" type="range" min="1" max="12" value="6" step=".5"><label>Audio source samples <span class="val" id="audioCountVal"></span></label><input id="audioCount" type="range" min="100" max="2000" value="700" step="50"><label>Visual wavefront samples <span class="val" id="visualCountVal"></span></label><input id="visualCount" type="range" min="25" max="500" value="100" step="25"><p class="hint">Both use deterministic stratified sampling of the same lightning geometry, but independently. Visual resolution does not change the sound.</p><label>Speed of sound <span class="val" id="speedVal"></span></label><input id="speed" type="range" min="300" max="370" value="343" step="1"><label>Impulse duration <span class="val" id="pulseVal"></span></label><input id="pulse" type="range" min="5" max="90" value="22" step="1"><label>High-frequency absorption <span class="val" id="absorbVal"></span></label><input id="absorb" type="range" min="0" max="100" value="35" step="1"><label>Random source variation <span class="val" id="roughVal"></span></label><input id="rough" type="range" min="0" max="100" value="30" step="1"><label>Texture intensity <span class="val" id="crackVal"></span></label><input id="crack" type="range" min="0" max="100" value="70" step="1"><label>Texture softness <span class="val" id="smoothVal"></span></label><input id="smooth" type="range" min="0" max="100" value="55" step="1"><h3>Ground acoustics</h3><label class="reflection-toggle"><input id="groundReflect" type="checkbox" checked> Enable ground reflection</label><label>Reflection strength <span class="val" id="reflectionVal">70%</span></label><input id="reflection" type="range" min="0" max="100" value="70" step="1"><p class="hint">Rigid, flat-ground approximation using mirrored sound sources. The observer’s microphone is 1.7 m above the ground. Neon-green fronts show reflected sound; underground propagation is excluded.</p><label>Output gain <span class="val" id="gainVal"></span></label><input id="gain" type="range" min="10" max="100" value="75" step="1"><p class="hint" style="margin-top:20px">Model: all channel segments discharge simultaneously. Each segment emits a low-frequency pressure pulse and contributes to a continuous, band-limited acoustic texture, delayed by its distance to the observer divided by the speed of sound. Segment strength scales with length and distance. Optional flat-ground image-source reflection; no ground transmission, wind, terrain scattering, or detailed nonlinear shock physics.</p><p class="hint">Playback begins at the lightning discharge (t = 0), including the full flash-to-thunder delay before the first acoustic arrival.</p></aside></div></main><script>
+const scene=document.getElementById('scene'),ctx=scene.getContext('2d'),wave=document.getElementById('wave'),wx=wave.getContext('2d');const W=900,H=520,ground=485;let audioPoints=null,visualPoints=null;let strokes=[],current=null,observer={x:520,y:ground},mode='draw',audio=null,buffer=null,samples=null,rate=22050,first=0,last=0,anim=null,startTime=0,source=null;const $=id=>document.getElementById(id);const knobs=['scale','speed','pulse','absorb','rough','crack','smooth','gain','reflection','audioCount','visualCount'];function settings(){for(const id of knobs){const el=$(id),suffix={scale:' km',speed:' m/s',pulse:' ms',absorb:'%',rough:'%',crack:'%',smooth:'%',gain:'%',reflection:'%',audioCount:'',visualCount:''}[id];$(id+'Val').textContent=el.value+suffix}}knobs.forEach(id=>$(id).addEventListener('input',()=>{settings();if(id==='visualCount'){visualPoints=null;if(!anim)render(0)}else invalidate()}));$('groundReflect').addEventListener('change',invalidate);$('arrivalCircle').addEventListener('change',()=>render(0));settings();function setMode(m){
+ mode=m;
+ $('draw').classList.toggle('active',m==='draw');
+ $('erase').classList.toggle('active',m==='erase');
+ $('observer').classList.toggle('active',m==='observer');
+ scene.style.cursor=m==='observer'?'grab':m==='erase'?'none':'crosshair';
+ render(0);
+}
+$('draw').onclick=()=>setMode('draw');
+$('erase').onclick=()=>setMode('erase');
+$('observer').onclick=()=>setMode('observer');
+function invalidate(){
+ audioPoints=null;visualPoints=null;samples=null;buffer=null;drawWave();render(0);
+ $('status').textContent='Scene changed. Generate thunder to update the sound.';
+}
+function pos(e){
+ const r=scene.getBoundingClientRect();
+ return {x:Math.max(0,Math.min(W,(e.clientX-r.left)*W/r.width)),
+ y:Math.max(0,Math.min(ground,(e.clientY-r.top)*H/r.height))};
+}
+const eraserRadius=17;
+let cursorPos=null;
+function lerp(a,b,t){return {x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t}}
+function pointDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+// Cut segments at exact circle intersections, keeping both remaining sides.
+// This is geometry editing, not merely hiding pixels in the canvas.
+function eraseAt(p){
+ const result=[];
+ for(const stroke of strokes){
+  if(!stroke.length)continue;
+  if(stroke.length===1){if(pointDistance(stroke[0],p)>eraserRadius)result.push(stroke);continue}
+  let piece=[];
+  function add(q){if(!piece.length||pointDistance(piece[piece.length-1],q)>1e-5)piece.push(q)}
+  function finish(){if(piece.length>=2)result.push(piece);piece=[]}
+  for(let i=1;i<stroke.length;i++){
+   const a=stroke[i-1],b=stroke[i],dx=b.x-a.x,dy=b.y-a.y;
+   const A=dx*dx+dy*dy;
+   if(A<1e-10)continue;
+   const fx=a.x-p.x,fy=a.y-p.y;
+   const B=2*(fx*dx+fy*dy),C=fx*fx+fy*fy-eraserRadius*eraserRadius;
+   const disc=B*B-4*A*C;
+   const ts=[0,1];
+   if(disc>0){const root=Math.sqrt(disc);for(const t of [(-B-root)/(2*A),(-B+root)/(2*A)])if(t>0&&t<1)ts.push(t)}
+   ts.sort((x,y)=>x-y);
+   for(let k=1;k<ts.length;k++){
+    const lo=ts[k-1],hi=ts[k],mid=lerp(a,b,(lo+hi)/2);
+    if(pointDistance(mid,p)<eraserRadius-1e-8){finish()}
+    else {add(lerp(a,b,lo));add(lerp(a,b,hi))}
+   }
+  }
+  finish();
+ }
+ strokes=result;
+}
+let down=false,erased=false;
+scene.addEventListener('pointerdown',e=>{
+ if(e.button!==0)return;
+ scene.setPointerCapture(e.pointerId);down=true;
+ const p=pos(e);cursorPos=p;
+ if(mode==='observer')observer={x:p.x,y:ground};
+ else if(mode==='erase'){eraseAt(p);erased=true}
+ else {current=[p];strokes.push(current)}
+ invalidate();
+});
+scene.addEventListener('pointermove',e=>{
+ const p=pos(e);cursorPos=p;
+ if(down){
+  if(mode==='observer')observer={x:p.x,y:ground};
+  else if(mode==='erase'){eraseAt(p);erased=true}
+  else if(current){const a=current[current.length-1];if(pointDistance(p,a)>2)current.push(p)}
+ }
+ render(0);
+});
+function finishPointer(){if(!down)return;down=false;current=null;erased=false;invalidate()}
+scene.addEventListener('pointerup',finishPointer);
+scene.addEventListener('pointercancel',finishPointer);
+scene.addEventListener('pointerleave',()=>{cursorPos=null;if(!down)render(0)});
+$('undo').onclick=()=>{strokes.pop();invalidate()};
+$('clear').onclick=()=>{strokes=[];invalidate()};
+const savedKnobs=['scale','speed','pulse','absorb','rough','crack','smooth','gain','reflection','audioCount','visualCount'];
+$('saveScene').onclick=()=>{
+ const state={format:'lightning-thunder-scene',version:1,
+  strokes:strokes.map(s=>s.map(p=>({x:p.x,y:p.y}))),
+  observer:{x:observer.x,y:observer.y},
+  settings:Object.fromEntries(savedKnobs.map(id=>[id,Number($(id).value)])),
+  groundReflection:$('groundReflect').checked};
+ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='lightning-scene.json';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),2000);
+ $('status').textContent='Scene saved as lightning-scene.json.';
+};
+$('loadScene').onclick=()=>$('sceneFile').click();
+$('sceneFile').addEventListener('change',async e=>{
+ const file=e.target.files[0];if(!file)return;
+ try{
+  if(file.size>5e6)throw Error('File is too large.');
+  const data=JSON.parse(await file.text());
+  if(data.format!=='lightning-thunder-scene'||data.version!==1||
+   !Array.isArray(data.strokes)||data.strokes.length>10000||
+   !data.strokes.every(s=>Array.isArray(s)&&s.length<=50000&&s.every(p=>
+    p&&Number.isFinite(p.x)&&Number.isFinite(p.y)&&p.x>=0&&p.x<=W&&p.y>=0&&p.y<=ground))||
+   !data.observer||!Number.isFinite(data.observer.x)||data.observer.x<0||data.observer.x>W)
+   throw Error('Not a valid Lightning → Thunder scene file.');
+  const nextSettings={};
+  if(data.settings){
+   if(Number.isFinite(data.settings.sourceCount)){
+    nextSettings.audioCount=Math.max(100,Math.min(2000,data.settings.sourceCount));
+    nextSettings.visualCount=Math.max(25,Math.min(500,data.settings.sourceCount));
+   }
+   for(const id of savedKnobs){
+    const value=data.settings[id],el=$(id);
+    if(value===undefined)continue;
+    if(!Number.isFinite(value)||value<Number(el.min)||value>Number(el.max))
+     throw Error('Invalid setting: '+id);
+    nextSettings[id]=value;
+   }
+  }
+  stop();
+  strokes=data.strokes.map(s=>s.map(p=>({x:p.x,y:p.y})));
+  observer={x:data.observer.x,y:ground};
+  for(const [id,value] of Object.entries(nextSettings))$(id).value=value;
+  if(typeof data.groundReflection==='boolean')$('groundReflect').checked=data.groundReflection;
+  settings();setMode('draw');invalidate();
+  $('status').textContent='Scene loaded: '+file.name+'. Generate thunder to hear it.';
+ }catch(err){$('status').textContent='Load failed: '+err.message}
+ finally{e.target.value=''}
+});
+// Deterministic sub-segment jaggedness: identical geometry every time a preset is loaded.
+function jaggedPresetPaths(paths){
+ let state=913721;
+ function rand(){state=(1664525*state+1013904223)>>>0;return state/4294967296}
+ return paths.map(path=>{
+  if(path.length<2)return path;
+  const out=[path[0]];
+  for(let i=1;i<path.length;i++){
+   const a=path[i-1],b=path[i],dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy);
+   const n=Math.max(1,Math.ceil(L/9));
+   for(let j=1;j<=n;j++){
+    const f=j/n;
+    // Preserve every original vertex, including branch attachment points.
+    const shift=j===n?0:(rand()*2-1)*Math.min(5,L/n*.65);
+    out.push({x:a.x+dx*f-dy/L*shift,y:a.y+dy*f+dx/L*shift});
+   }
+  }
+  return out;
+ });
+}
+function preset(which){if(which===1)strokes=[[{x:350,y:25},{x:335,y:60},{x:355,y:93},{x:325,y:130},{x:345,y:167},{x:320,y:204},{x:339,y:247},{x:310,y:284},{x:325,y:320},{x:300,y:357},{x:315,y:398},{x:298,y:ground}]];if(which===2){strokes=[[{x:350,y:25},{x:335,y:60},{x:355,y:93},{x:325,y:130},{x:345,y:167},{x:320,y:204},{x:339,y:247},{x:310,y:284},{x:325,y:320},{x:300,y:357},{x:315,y:398},{x:298,y:ground}]];strokes.push([{x:339,y:247},{x:390,y:265},{x:405,y:294},{x:451,y:310},{x:470,y:347}],[{x:345,y:167},{x:282,y:184},{x:254,y:220},{x:211,y:239}],[{x:325,y:320},{x:370,y:347},{x:380,y:382},{x:418,y:399}],[{x:335,y:60},{x:395,y:80},{x:420,y:117}])}if(which===3)strokes=[[{x:75,y:120},{x:125,y:145},{x:174,y:130},{x:226,y:157},{x:277,y:144},{x:320,y:172},{x:367,y:160},{x:423,y:193},{x:465,y:182},{x:517,y:210},{x:559,y:196},{x:613,y:224},{x:660,y:207},{x:715,y:238},{x:780,y:220}],[{x:320,y:172},{x:304,y:214},{x:340,y:250},{x:329,y:294}],[{x:559,y:196},{x:542,y:242},{x:569,y:274}]];
+if(which===4){
+ // Natural-looking, tortuous channel with a short near-observer branch.
+ // The longer trunk and its distant branches occupy a broad (not exact)
+ // range of similar observer distances, producing a delayed arrival cluster.
+ observer={x:655,y:ground};
+ const trunk=[
+  {x:205,y:35},{x:227,y:61},{x:218,y:87},{x:253,y:108},
+  {x:263,y:135},{x:292,y:150},{x:286,y:177},{x:321,y:193},
+  {x:311,y:224},{x:346,y:243},{x:340,y:274},{x:371,y:296},
+  {x:359,y:329},{x:379,y:352},{x:359,y:383},{x:372,y:407},
+  {x:344,y:435},{x:340,y:ground}
+ ];
+ // Only a small amount of channel is relatively close: a weak precursor.
+ const nearBranch=[{x:371,y:296},{x:406,y:305},{x:429,y:328},
+  {x:457,y:333},{x:476,y:358},{x:501,y:365},{x:513,y:389}];
+ // Distant side branches lengthen the main arrival cluster without
+ // creating an artificial circle centered on the observer.
+ const upperBranch=[{x:292,y:150},{x:271,y:181},{x:240,y:196},
+  {x:224,y:225},{x:194,y:238},{x:183,y:265}];
+ const middleBranch=[{x:346,y:243},{x:319,y:257},{x:306,y:284},
+  {x:273,y:295},{x:260,y:326},{x:231,y:337}];
+ const lowerBranch=[{x:359,y:329},{x:323,y:346},{x:306,y:374},
+  {x:276,y:384},{x:262,y:415}];
+ strokes=[trunk,nearBranch,upperBranch,middleBranch,lowerBranch];
+}
+
+strokes=jaggedPresetPaths(strokes);invalidate()}[1,2,3,4].forEach(i=>$('preset'+i).onclick=()=>preset(i));// Reproducible stratified arc-length sampling. Each source represents L/N pixels
+// of channel, so changing resolution does not change total source strength.
+function getSourcePoints(kind='audio'){
+ if(kind==='audio'&&audioPoints)return audioPoints;
+ if(kind==='visual'&&visualPoints)return visualPoints;
+ const segments=[];let total=0;
+ for(const stroke of strokes)for(let i=1;i<stroke.length;i++){
+  const a=stroke[i-1],b=stroke[i],len=Math.hypot(b.x-a.x,b.y-a.y);
+  if(len>1e-8){segments.push({a,b,start:total,end:total+len,len});total+=len}
+ }
+ if(!segments.length){if(kind==='visual')return visualPoints=[];return audioPoints=[];}
+ const N=+$(kind==='visual'?'visualCount':'audioCount').value,step=total/N;
+ let state=1729;function rand(){state=(1664525*state+1013904223)>>>0;return state/4294967296}
+ const points=[];let idx=0;
+ for(let i=0;i<N;i++){
+  const distance=(i+rand())*step;
+  while(idx<segments.length-1&&segments[idx].end<distance)idx++;
+  const seg=segments[idx],f=Math.max(0,Math.min(1,(distance-seg.start)/seg.len));
+  points.push({x:seg.a.x+(seg.b.x-seg.a.x)*f,y:seg.a.y+(seg.b.y-seg.a.y)*f,lengthPx:step});
+ }
+ if(kind==='visual')return visualPoints=points;return audioPoints=points;
+}
+function render(elapsed=0,active=false){ctx.clearRect(0,0,W,H);let bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#101b36');bg.addColorStop(1,'#1d3144');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);ctx.strokeStyle='#ffffff12';ctx.lineWidth=1;for(let x=0;x<W;x+=75){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,ground);ctx.stroke()}for(let y=35;y<ground;y+=75){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}ctx.fillStyle='#244332';ctx.fillRect(0,ground,W,H-ground);ctx.strokeStyle='#75a67d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,ground);ctx.lineTo(W,ground);ctx.stroke();const km=+$('scale').value;ctx.fillStyle='#9fb5d1';ctx.font='14px system-ui';ctx.fillText('Width: '+km+' km  •  ground level',12,H-12);// Permanent neon-pink channel, visible before and after the flash.
+function traceChannels(){for(const s of strokes){if(s.length<2)continue;ctx.beginPath();ctx.moveTo(s[0].x,s[0].y);for(let i=1;i<s.length;i++)ctx.lineTo(s[i].x,s[i].y);ctx.stroke()}}
+ctx.save();ctx.lineJoin='round';ctx.lineCap='round';ctx.shadowColor='#ff36b7';ctx.shadowBlur=13;ctx.strokeStyle='#ff43bc';ctx.lineWidth=3;traceChannels();ctx.restore();
+if(active){
+  // Bright blue flash overlays the pink path, then fades back to pink.
+  const flash=Math.max(0,1-elapsed/1.15);
+  if(flash>0){ctx.save();ctx.lineJoin='round';ctx.lineCap='round';ctx.globalAlpha=flash;ctx.shadowColor='#49baff';ctx.shadowBlur=35;ctx.strokeStyle='#4cbeff';ctx.lineWidth=9;traceChannels();ctx.shadowBlur=19;ctx.strokeStyle='#d7f6ff';ctx.lineWidth=3;traceChannels();ctx.restore()}
+  // Circular sound wavefronts originate at the discharge, not the first arrival.
+  const metersPerPx=km*1000/W,c=+$('speed').value,radius=elapsed*c/metersPerPx;
+  if(radius>0){ctx.save();ctx.beginPath();ctx.rect(0,0,W,ground);ctx.clip();ctx.strokeStyle='#74d4ff55';ctx.shadowColor='#4bbdff';ctx.shadowBlur=5;ctx.lineWidth=1.2;const points=getSourcePoints('visual');
+ for(let i=0;i<points.length;i++){const {x,y}=points[i];ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke()}
+ ctx.restore();
+    if($('groundReflect').checked && +$('reflection').value>0){
+      // Image sources below the ground reproduce a single specular reflection.
+      // Clip to the air half-space; the underground parts are never drawn.
+      ctx.save();ctx.beginPath();ctx.rect(0,0,W,ground);ctx.clip();
+      ctx.strokeStyle='#65ff9b';ctx.globalAlpha=.14+.42*(+$('reflection').value/100);
+      ctx.shadowColor='#3dff89';ctx.shadowBlur=8;ctx.lineWidth=1.35;
+      const points=getSourcePoints('visual');
+ for(let i=0;i<points.length;i++){
+  const {x}=points[i],y=2*ground-points[i].y;
+  if(radius>y-ground){ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.stroke()}
+ }
+ ctx.restore();
+    }
+  }
+  // Reverse wavefront: the radius is the direct acoustic distance heard now.
+  // Highlight the actual channel geometry, not just the visual source samples.
+  if($('arrivalCircle').checked){
+    const ringRadius=radius,band=3.6;
+    ctx.save();ctx.beginPath();ctx.rect(0,0,W,ground);ctx.clip();
+    ctx.beginPath();ctx.arc(observer.x,observer.y-5,ringRadius,0,Math.PI*2);
+    ctx.strokeStyle='rgba(255,248,255,.78)';ctx.lineWidth=1.7;
+    ctx.shadowColor='#ffe4fb';ctx.shadowBlur=12;ctx.stroke();ctx.restore();
+    ctx.save();ctx.beginPath();ctx.rect(0,0,W,ground);ctx.clip();
+    ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#fff0fa';ctx.lineWidth=5;
+    ctx.shadowColor='#ff9cde';ctx.shadowBlur=22;
+    for(const stroke of strokes){
+      for(let i=1;i<stroke.length;i++){
+        const a=stroke[i-1],b=stroke[i],dx=b.x-a.x,dy=b.y-a.y;
+        const len=Math.hypot(dx,dy);if(len<.001)continue;
+        const pieces=Math.max(1,Math.ceil(len/3));
+        for(let k=0;k<pieces;k++){
+          const t=(k+.5)/pieces,x=a.x+dx*t,y=a.y+dy*t;
+          const d=Math.hypot(x-observer.x,y-(observer.y-5));
+          if(Math.abs(d-ringRadius)>band)continue;
+          const t0=k/pieces,t1=(k+1)/pieces;
+          ctx.beginPath();ctx.moveTo(a.x+dx*t0,a.y+dy*t0);
+          ctx.lineTo(a.x+dx*t1,a.y+dy*t1);ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+}
+if(mode==='erase'&&cursorPos){
+ ctx.save();ctx.strokeStyle='#ff91d7';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+ ctx.beginPath();ctx.arc(cursorPos.x,cursorPos.y,eraserRadius,0,Math.PI*2);ctx.stroke();
+ ctx.restore();
+}
+ctx.fillStyle='#ffcd75';ctx.beginPath();ctx.arc(observer.x,observer.y-5,8,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffdd9a';ctx.fillText('Observer',Math.min(W-92,observer.x+12),ground-12)}function makePulse(len,dt,cut){const arr=new Float32Array(len);const tau=dt/3.1;for(let i=0;i<len;i++){const t=(i-len*.25)/rate;const z=t/tau;arr[i]=-z*Math.exp(-.5*z*z)}if(cut>0){let s=0;const a=Math.min(.97,cut);for(let i=0;i<len;i++){s=a*s+(1-a)*arr[i];arr[i]=s}}return arr}function generate(){
+ stop();
+ const metersPerPx=+$('scale').value*1000/W,c=+$('speed').value,ms=+$('pulse').value/1000,
+       abs=+$('absorb').value/100,rough=+$('rough').value/100,crack=+$('crack').value/100,smooth=+$('smooth').value/100,reflect=$('groundReflect').checked?(+$('reflection').value/100):0;
+   let seg=[];
+  for(const point of getSourcePoints('audio')){
+   const {x,y}=point,length=point.lengthPx*metersPerPx;
+   const d=Math.max(20,Math.hypot(x-observer.x,y-observer.y)*metersPerPx);
+   seg.push({d,length,reflection:false});
+   if(reflect>0){
+    const receiverHeight=1.7;
+    const reflectedDistance=Math.max(20,Math.hypot((x-observer.x)*metersPerPx,(ground-y)*metersPerPx+receiverHeight));
+    seg.push({d:reflectedDistance,length,reflection:true});
+   }
+  }
+if(!seg.length){$('status').textContent='Draw a channel first.';return}
+ first=Math.min(...seg.map(s=>s.d/c));last=Math.max(...seg.map(s=>s.d/c));
+ const duration=Math.min(90,last+2.5),n=Math.ceil(duration*rate);
+ const low=new Float32Array(n),near=new Float32Array(n),far=new Float32Array(n);
+ const impulseLen=Math.ceil(ms*6*rate),cache=new Map();
+ let seed=481516;
+ function rnd(){seed=(1664525*seed+1013904223)>>>0;return seed/4294967296}
+ // Each piece of channel supplies an acoustic impulse and a broadband shock excitation.
+ // The broadband component is generated from the *arrival-time density* of those segments.
+ // Thus concentrated arrivals create cracks; diffuse arrivals create an extended rumble.
+ for(const s of seg){
+  const idx=Math.round(s.d/c*rate),distKm=s.d/1000;
+  const atten=1/Math.pow(Math.max(60,s.d),.85);
+  const amp=s.length*atten*(1+rough*(rnd()*2-1))*(s.reflection?reflect:1);
+  const cutoff=Math.min(.94,abs*distKm*.25),key=Math.round(cutoff*20);
+  let pulse=cache.get(key);
+  if(!pulse){pulse=makePulse(impulseLen,ms,key/20);cache.set(key,pulse)}
+  for(let j=0;j<pulse.length&&idx+j<n;j++)low[idx+j]+=amp*pulse[j];
+  // Spread each source over a few milliseconds to prevent sample-grid artifacts.
+  // High frequencies decay more rapidly with propagation distance.
+  const sharpAtten=Math.exp(-distKm*(.26+abs*1.05));
+  const sharp=amp*sharpAtten;
+  const target=distKm<2.5?near:far;
+  const half=Math.max(2,Math.round(rate*.003));
+  for(let j=-half;j<=half;j++){
+   const ix=idx+j;
+   if(ix>=0&&ix<n)target[ix]+=sharp*(1-Math.abs(j)/(half+1))/(half+1);
+  }
+ }
+ // v6: continuous, band-limited acoustic texture, driven by the arrival envelope.
+ // First smooth the excitation energy across tens of milliseconds so individual
+ // discretization samples do not become audible pops.
+ function energyEnvelope(excitation, windowMs){
+  const radius=Math.max(1,Math.round(rate*windowMs/1000));
+  const out=new Float32Array(n);
+  // Causal attack/release smoothing; no artificial pre-arrival sound.
+  const attack=Math.exp(-1/(rate*.012)),release=Math.exp(-1/(rate*(windowMs/1000)));
+  let state=0;
+  for(let i=0;i<n;i++){
+   const target=Math.max(0,excitation[i]);
+   state=(target>state?attack:release)*state+(1-(target>state?attack:release))*target;
+   out[i]=Math.sqrt(Math.max(0,state));
+  }
+  return out;
+ }
+ const nearEnv=energyEnvelope(near,55+smooth*85);
+ const farEnv=energyEnvelope(far,95+smooth*130);
+ // Correlated noise, not separate noise bursts at each source point.
+ // A combination of smoothly filtered frequency bands gives body and air.
+ const texture=new Float32Array(n);
+ let bass=0,mid=0,air=0,slow=0;
+ const alpha=hz=>1-Math.exp(-2*Math.PI*hz/rate);
+ const ab=alpha(140),am=alpha(900-400*smooth),aa=alpha(2500-1300*smooth),as=alpha(38);
+ for(let i=0;i<n;i++){
+  const white=rnd()*2-1;
+  bass+=ab*(white-bass);
+  mid+=am*(white-mid);
+  air+=aa*(white-air);
+  slow+=as*(white-slow);
+  const midBand=mid-bass,airBand=air-mid;
+  texture[i]=(nearEnv[i]*(bass*.65+midBand*.9+airBand*.22*(1-smooth*.6))
+             +farEnv[i]*(slow*.9+(bass-slow)*.65+midBand*.2));
+ }
+ // Gentle 2 ms rounding of the broadband texture to remove sample-scale edges.
+ let filt=0;const af=alpha(2400-1100*smooth);
+ for(let i=0;i<n;i++){filt+=af*(texture[i]-filt);texture[i]=filt;}
+ let lowPeak=0,texturePeak=0;
+ for(let i=0;i<n;i++){
+  lowPeak=Math.max(lowPeak,Math.abs(low[i]));
+  texturePeak=Math.max(texturePeak,Math.abs(texture[i]));
+ }
+ samples=new Float32Array(n);
+ const lowNorm=lowPeak?.78/lowPeak:0;
+ const textureNorm=texturePeak?(.28+.40*crack)/texturePeak:0;
+ let peak=0;
+ for(let i=0;i<n;i++){
+  // No per-sample hard clipping or aggressive saturation.
+  samples[i]=low[i]*lowNorm+texture[i]*textureNorm;
+  peak=Math.max(peak,Math.abs(samples[i]));
+ }
+ if(peak>0){const g=+$('gain').value/100*.95/peak;for(let i=0;i<n;i++)samples[i]*=g}
+ buffer=null;drawWave();render(0);
+ $('status').textContent=`Generated ${duration.toFixed(1)} s from ${getSourcePoints('audio').length} audio source points (${getSourcePoints('visual').length} visual)${reflect?' with ground reflections':''}. First arrival: ${first.toFixed(2)} s after flash. Continuous texture intensity: ${Math.round(crack*100)}%. Texture softness: ${Math.round(smooth*100)}%.`;
+}
+function drawWave(time=-1){wx.clearRect(0,0,900,105);wx.fillStyle='#0b1525';wx.fillRect(0,0,900,105);wx.strokeStyle='#293d56';wx.beginPath();wx.moveTo(0,52);wx.lineTo(900,52);wx.stroke();if(!samples)return;wx.strokeStyle='#75caff';wx.lineWidth=1;wx.beginPath();for(let x=0;x<900;x++){const a=Math.floor(x/900*samples.length),b=Math.max(a+1,Math.floor((x+1)/900*samples.length));let lo=0,hi=0;for(let j=a;j<b;j++){const v=samples[j];if(v<lo)lo=v;if(v>hi)hi=v}wx.moveTo(x,52-hi*47);wx.lineTo(x,52-lo*47)}wx.stroke();if(time>=0){wx.strokeStyle='#ffcc75';wx.beginPath();const x=time*rate/samples.length*900;wx.moveTo(x,0);wx.lineTo(x,105);wx.stroke()}}function stop(){if(source){try{source.stop()}catch(e){}source=null}if(anim)cancelAnimationFrame(anim);anim=null;$('playhead').textContent=''}function play(){if(!samples)generate();if(!samples)return;stop();audio=audio||new (window.AudioContext||window.webkitAudioContext)();audio.resume();buffer=audio.createBuffer(1,samples.length,rate);buffer.copyToChannel(samples,0);source=audio.createBufferSource();source.buffer=buffer;source.connect(audio.destination);source.start();startTime=audio.currentTime;function frame(){const t=audio.currentTime-startTime;if(t>=samples.length/rate){stop();render(0);drawWave();return}render(t,true);drawWave(t);$('playhead').textContent=t.toFixed(1)+' s';anim=requestAnimationFrame(frame)}frame()}function wav(){if(!samples)return;const data=new ArrayBuffer(44+samples.length*2),v=new DataView(data);function str(o,s){for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))}str(0,'RIFF');v.setUint32(4,36+samples.length*2,true);str(8,'WAVE');str(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);str(36,'data');v.setUint32(40,samples.length*2,true);for(let i=0;i<samples.length;i++)v.setInt16(44+i*2,Math.max(-32768,Math.min(32767,Math.round(samples[i]*32767))),true);const url=URL.createObjectURL(new Blob([data],{type:'audio/wav'})),a=document.createElement('a');a.href=url;a.download='simulated-thunder.wav';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}$('generate').onclick=generate;$('play').onclick=play;$('stop').onclick=()=>{stop();render(0);drawWave()};$('download').onclick=()=>{if(!samples)generate();if(samples)wav()};preset(2);</script></body></html>
