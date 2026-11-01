@@ -13,7 +13,21 @@ function force(p){const nz=40,nxy=20;let integral=0;for(let k=0;k<nz;k++){const 
 function apply(p){controls.ball.value=Math.log10(p.diam);controls.pyramid.value=p.mp.toFixed(6);controls.gap.value=p.gap;controls.density.value=p.rho;update()}
 function reset(){apply({diam:.1,mp:.152166,rho:rhoDefault,gap:.005})}
 $('reset').onclick=reset;$('touch').onclick=()=>{controls.gap.value=0;update()};
-$('target').onclick=()=>{let p=get();if(!p)return;const f=force({...p,gap:0});const scale=(targetForce/f)**.25;const diam=p.diam*scale,mp=p.mp*scale**3;if(diam>.999*1000||diam<.01||mp>1e9||mp<.0001){reset();p=get();const s=(targetForce/force({...p,gap:0}))**.25;apply({diam:p.diam*s,mp:p.mp*s**3,rho:p.rho,gap:0})}else apply({diam,mp,rho:p.rho,gap:0})};
+$('target').onclick=()=>{
+ // Keep the video's measured pyramid mass fixed. Find the sphere diameter
+ // required to produce 0.001 g apparent mass at zero surface separation.
+ const rho=Number(controls.density.value);
+ const mp=.152166, gap=0;
+ const required=targetForce;
+ function candidate(diam){const R=diam/2,ms=rho*Math.PI*diam**3/6,base=(3*mp/(rho*aspect))**(1/3),height=aspect*base;return{diam,mp,rho,gap,R,ms,base,height,comSphere:R,comPyramid:diam+height/4,centerDistance:R+height/4}}
+ let low=.01,high=1000;
+ // The force grows monotonically with sphere diameter for this geometry.
+ for(let i=0;i<55;i++){
+   const mid=(low+high)/2;
+   if(force(candidate(mid))<required)low=mid;else high=mid;
+ }
+ apply({diam:(low+high)/2,mp,rho,gap});
+};
 for(const [key,input] of Object.entries(controls)){input.addEventListener('input',()=>{if(key==='pyramid'&&input.value.split('.')[1]?.length>6)return;update()});input.addEventListener('change',()=>{if(key==='pyramid'){let v=Math.min(1e9,Math.max(.000001,Number(input.value)||.152166));input.value=v.toFixed(6)}update()})}
 let current=null;
 function update(){const p=get();if(!p)return;current=p;const F=force(p),eq=F/gEarth,ratio=eq/1e-6;
