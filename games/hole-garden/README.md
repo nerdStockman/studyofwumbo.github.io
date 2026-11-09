@@ -1,15 +1,20 @@
-# Little Void Garden v0.5
+# Little Void Garden v0.6
 
-Static Three.js game for GitHub Pages. Upload the files in this folder; no backend required.
+Static Three.js web game for GitHub Pages. Upload the contents of this directory.
 
 ## Changes
-- More frequent and taller towers (4–8 blocks), made only from upright boxes or flat-ended hexagonal prisms.
-- Tower collision handling keeps tiers aligned while supported, but gravity lets them fall after lower blocks are swallowed.
-- More forgiving hole swallowing: tests the horizontal footprint instead of the object’s oversized spherical collision bound.
-- Reduced some collision calculations for mobile performance.
-- Camera, drag steering, timed/relaxed modes, and local progress saving remain unchanged.
+- Version number displayed on the main menu, including after a refresh.
+- Many deliberately placed towers, 5–9 objects high (occasionally 12).
+- Each tower consists of identical boxes or identical hexagonal prisms: same shape, size, and color.
+- Loose spheres, gems, and bombs are spawned away from towers.
+- Tower tiers stay aligned while falling; the previous gravity system remains.
+- More forgiving swallowing based on visible horizontal footprint and hole center proximity.
+- Camera and drag movement unchanged.
 
-## Local test
-Run `python -m http.server 8000` in this folder and open http://localhost:8000. On GitHub Pages, upload all files to a directory. Three.js is loaded from a CDN.
+## Deployment / caching
+Upload all files together. Hard-refresh Chrome if you still see the previous version; the version number on the main menu is the quickest confirmation. Script and stylesheet URLs have a v0.6 cache-busting query.
 
-The custom physics remains approximate. Very dense towers may still wobble or shift.
+## Local testing
+Run `python -m http.server 8000` and open http://localhost:8000. Three.js loads from a CDN.
+
+Physics is intentionally approximate, not a full rigid-body engine.

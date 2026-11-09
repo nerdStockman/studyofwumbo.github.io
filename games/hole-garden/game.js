@@ -1,5 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
+const VERSION='0.6';
 const $=id=>document.getElementById(id),wrap=$('canvasWrap');
+$('version').textContent=`v${VERSION}`;
 const scene=new THREE.Scene();scene.background=new THREE.Color('#303b60');
 const camera=new THREE.OrthographicCamera(-5,5,7,-7,.1,120);
 const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;wrap.appendChild(renderer.domElement);
@@ -39,7 +41,7 @@ function makeItem(x,z,type,scale,color,options={}){
   x=support.group.position.x;z=support.group.position.z;
  }else{
   for(let attempt=0;attempt<100;attempt++){
-   const conflict=items.some(o=>!o.dead&&Math.hypot(o.group.position.x-x,o.group.position.z-z)<(o.footprint+footprint)*1.08);
+   const conflict=items.some(o=>!o.dead&&Math.hypot(o.group.position.x-x,o.group.position.z-z)<(o.footprint+footprint)*1.35);
    if(!conflict)break;
    const angle=Math.random()*Math.PI*2,dist=.28+Math.sqrt(attempt+1)*.38;
    x=THREE.MathUtils.clamp(x+Math.cos(angle)*dist,-WORLD+r,WORLD-r);
@@ -48,54 +50,56 @@ function makeItem(x,z,type,scale,color,options={}){
  }
  group.position.set(x,support?support.group.position.y+support.halfHeight+halfHeight+.006:halfHeight,z);
  scene.add(group);
- const item={group,type,shape,flat,scale,r,footprint,halfHeight,vy:0,falling:false,fallTime:0,dead:false,stackId:options.stackId??null};
+ const item={group,type,shape,flat,scale,r,footprint,halfHeight,vy:0,falling:false,fallTime:0,dead:false,stackId:options.stackId??null,anchorX:support?support.anchorX:x,anchorZ:support?support.anchorZ:z};
  items.push(item);return item;
 }
 let nextStackId=0;
 function addPile(cx,cz,layers,colorIndex){
- // Only upright boxes and flat-ended hexagonal prisms can support another item.
- // Each tier is built on its predecessor, never on a sphere or a faceted gem.
- const shape=Math.random()<.75?'box':'hex';
+ // Every tier is an identical flat-faced object: same geometry, size and color.
+ const shape=Math.random()<.65?'box':'hex';
  const scale=.68+Math.random()*.35;
  const stackId=++nextStackId;
- let support=makeItem(cx,cz,'good',scale,palette[colorIndex%palette.length],{shape,stackId});
- for(let layer=1;layer<layers;layer++){
-  support=makeItem(cx,cz,'good',scale,palette[(colorIndex+layer)%palette.length],{shape,support,stackId});
+ let support=null;
+ for(let layer=0;layer<layers;layer++){
+  support=makeItem(cx,cz,'good',scale,palette[colorIndex%palette.length],{shape,support,stackId});
  }
- return support;
 }
 function resetLevel(){
  for(const item of items)scene.remove(item.group);items.length=0;
  collected=0;radius=.78;remaining=mode==='timed'?Math.max(100,150-Math.floor(level/3)*4):Infinity;
  hole.position.set(0,0,0);drag.active=false;drag.dx=drag.dy=0;
- // A deliberate mix of freestanding objects, vertical towers and dense neighborhoods.
- // Stacks use only flat-top/flat-bottom shapes; spheres and gems remain on the floor.
- for(let i=0;i<22;i++){
-  const a=i*2.39996,d=2.5+Math.sqrt(i)*.74;
-  makeItem(Math.cos(a)*d,Math.sin(a)*d,'good',.64+Math.random()*.38,palette[i%palette.length]);
- }
- // Deliberately build numerous tall towers, with a few larger obstacles and loose pieces.
- // Towers are spread across the world so each camera-sized region contains several.
- const clusters=16+Math.min(level,5);
- for(let c=0;c<clusters;c++){
-  const angle=c*2.399963, distance=5+Math.sqrt(c/clusters)*17;
-  const cx=Math.cos(angle)*distance+(Math.random()-.5)*2.2;
-  const cz=Math.sin(angle)*distance+(Math.random()-.5)*2.2;
-  const towers=2+(c%3===0?1:0);
-  for(let t=0;t<towers;t++){
-   const theta=t*Math.PI*2/towers+c*.7;
-   addPile(cx+Math.cos(theta)*1.5,cz+Math.sin(theta)*1.5,4+Math.floor(Math.random()*5),c+t);
-  }
-  if(c%3===0){
-   makeItem(cx+3.4,cz,'good',1.9+Math.random()*.85,palette[c%palette.length]);
-  }
-  for(let i=0;i<2;i++){
-   makeItem(cx+(Math.random()-.5)*5,cz+(Math.random()-.5)*5,'good',.65+Math.random()*.5,palette[(c+i+3)%palette.length]);
+ nextStackId=0;
+ // Explicit tower grid, not opportunistic random stacking. Several towers are
+ // visible from the starting location; no spheres, gems or bombs are placed atop them.
+ const towers=[];
+ const spacing=4.1;
+ for(let gx=-4;gx<=4;gx++)for(let gz=-4;gz<=4;gz++){
+  if(Math.abs(gx)===4&&Math.abs(gz)===4)continue;
+  const x=gx*spacing+(Math.random()-.5)*.45;
+  const z=gz*spacing+(Math.random()-.5)*.45;
+  if(Math.hypot(x,z)<2.8)continue;
+  // Frequent tall columns; some deliberately taller landmarks.
+  if(Math.random()<.68){
+   const height=5+Math.floor(Math.random()*5)+(Math.random()<.14?3:0);
+   addPile(x,z,height,(gx+gz+20)%palette.length);
+   towers.push({x,z});
   }
  }
- for(let i=0;i<8+Math.min(level,8);i++){
-  const x=(Math.random()-.5)*40,z=(Math.random()-.5)*40;
-  if(Math.hypot(x,z)>5)makeItem(x,z,'bomb',.8,0xff4966);
+ // Loose objects are separated from towers, so a sphere cannot land on a cube.
+ function clearOfTowers(x,z,padding=1.8){return towers.every(t=>Math.hypot(x-t.x,z-t.z)>padding)}
+ for(let i=0;i<85;i++){
+  let x,z,attempt=0;
+  do{x=(Math.random()-.5)*42;z=(Math.random()-.5)*42;attempt++}
+  while(attempt<80&&(!clearOfTowers(x,z,2.1)||Math.hypot(x,z)<1.8));
+  if(!clearOfTowers(x,z,1.6))continue;
+  const scale=i%9===0?1.7+Math.random()*.8:.65+Math.random()*.55;
+  makeItem(x,z,'good',scale,palette[i%palette.length],{shape:['sphere','gem','box','hex'][i%4]});
+ }
+ for(let i=0;i<10+Math.min(level,7);i++){
+  let x,z,tries=0;
+  do{x=(Math.random()-.5)*42;z=(Math.random()-.5)*42;tries++}
+  while(tries<80&&(!clearOfTowers(x,z,2.2)||Math.hypot(x,z)<5));
+  if(clearOfTowers(x,z,1.8))makeItem(x,z,'bomb',.8,0xff4966);
  }
  goal=Math.min(35+level*4,items.filter(i=>i.type==='good').length-8);updateHud();
 }
@@ -104,7 +108,7 @@ function physicsStep(dt){
  // A few solver iterations give stacks stable support without a physics dependency.
  const steps=Math.max(1,Math.ceil(dt/.016)),h=dt/steps;
  for(let step=0;step<steps;step++){
-  for(const a of active){a.vy=Math.max(-16,a.vy-19*h);a.group.position.y+=a.vy*h}
+  for(const a of active){a.vy=Math.max(-16,a.vy-19*h);a.group.position.y+=a.vy*h;if(a.stackId!==null){a.group.position.x=a.anchorX;a.group.position.z=a.anchorZ}}
   for(let iteration=0;iteration<3;iteration++){
    for(const a of active){
     if(a.group.position.y<a.halfHeight){a.group.position.y=a.halfHeight;if(a.vy<0)a.vy=0}
@@ -113,6 +117,7 @@ function physicsStep(dt){
    }
    for(let i=0;i<active.length;i++)for(let j=i+1;j<active.length;j++){
     const a=active[i],b=active[j];
+    if((a.stackId!==null||b.stackId!==null)&&a.stackId!==b.stackId)continue;
     const dx=b.group.position.x-a.group.position.x,dy=b.group.position.y-a.group.position.y,dz=b.group.position.z-a.group.position.z;
     if(Math.abs(dx)>a.r+b.r+0.2||Math.abs(dz)>a.r+b.r+0.2||Math.abs(dy)>a.r+b.r+0.2)continue;
     // Upright flat shapes have a planar contact: this prevents the sphere-bound
@@ -192,7 +197,7 @@ for(const item of items){
  const dist=Math.hypot(item.group.position.x-hole.position.x,item.group.position.z-hole.position.z);
  // Swallow objects whose centers are over the opening and which fit its diameter.
  // Elevated items fall naturally as their supporting bodies are removed.
- if(dist<Math.max(.05,radius-item.footprint*.25)&&item.footprint<radius*1.02&&item.group.position.y<item.halfHeight+.32){
+ if(dist<radius*.72&&item.footprint<=radius*1.30&&item.group.position.y<item.halfHeight+.38){
   item.falling=true;
   if(item.type==='bomb'){
    if(mode==='timed')remaining=Math.max(0,remaining-18);
