@@ -1,40 +1,17 @@
-# Little Void Garden
+# Little Void Garden v0.3
 
-A free, original, touch-friendly Three.js hole-collecting prototype. No purchases, accounts, or ads.
+A static Three.js game. Host the contents of this folder on GitHub Pages (no backend needed).
 
-## Play locally
+## Changes in v0.3
+- Gravity and contact resolution for objects, including stacked items.
+- Floor collision and separation of intersecting objects.
+- Removed the old stack-height support detection that left objects floating.
+- Preserved camera-following movement, timed/relaxed modes, and local progress.
 
-Because JavaScript modules are used, serve the directory rather than double-clicking `index.html`:
+## Running locally
+Run `python -m http.server 8000` from this folder and open http://localhost:8000.
 
-```bash
-python -m http.server 8000
-```
+Three.js is loaded from jsDelivr, so an internet connection is required initially.
 
-Open `http://localhost:8000` in a browser.
-
-## Put it on an Android phone
-
-Upload these files to a static HTTPS web host (e.g. a subfolder of your website, GitHub Pages, or Netlify). Open the HTTPS URL in Chrome on Android and choose **Add to Home screen** / **Install app**.
-
-The game uses a CDN for Three.js and therefore requires an internet connection at initial load. Offline support can be added later by bundling Three.js locally and adding a service worker.
-
-## Mechanics
-
-- Drag anywhere to move the hole.
-- Swallow colorful objects to grow and fill the progress bar.
-- Larger objects require a bigger hole.
-- Red bombs cost 18 seconds in timed mode, or two collected points in relaxed mode; they also shrink the hole slightly.
-- Timed and relaxed modes.
-- Level progression is saved in localStorage.
-
-## License and originality
-
-Original prototype implementation and geometric art. Inspired by a general hole-collection game mechanic, not a copy of another game's assets, branding, or code.
-
-## Version 0.2 changes
-- Fixed-position, close-up camera follows the hole around a larger world.
-- Drag from anywhere to steer continuously; release to stop.
-- Groups of objects with varied sizes and some elevated stacks.
-- More generous level time to account for the larger world.
-
-The game runs fully client-side and is suitable for GitHub Pages. No server-side processing is required.
+## Note
+This is a lightweight custom physics solver rather than a full rigid-body engine. It uses spherical collision bounds and may still show small gaps between square objects or jitter in dense piles. Test on the target Android phone for performance.
