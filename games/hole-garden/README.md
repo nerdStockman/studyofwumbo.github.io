@@ -30,3 +30,11 @@ The game uses a CDN for Three.js and therefore requires an internet connection a
 ## License and originality
 
 Original prototype implementation and geometric art. Inspired by a general hole-collection game mechanic, not a copy of another game's assets, branding, or code.
+
+## Version 0.2 changes
+- Fixed-position, close-up camera follows the hole around a larger world.
+- Drag from anywhere to steer continuously; release to stop.
+- Groups of objects with varied sizes and some elevated stacks.
+- More generous level time to account for the larger world.
+
+The game runs fully client-side and is suitable for GitHub Pages. No server-side processing is required.
