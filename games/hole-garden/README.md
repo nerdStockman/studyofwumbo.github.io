@@ -1,20 +1,27 @@
-# Little Void Garden v0.6
+# Little Void Garden v0.7
 
-Static Three.js web game for GitHub Pages. Upload the contents of this directory.
+A static Three.js game designed for Android Chrome and GitHub Pages. No backend, build step, accounts, purchases or server-side processing.
 
-## Changes
-- Version number displayed on the main menu, including after a refresh.
-- Many deliberately placed towers, 5–9 objects high (occasionally 12).
-- Each tower consists of identical boxes or identical hexagonal prisms: same shape, size, and color.
-- Loose spheres, gems, and bombs are spawned away from towers.
-- Tower tiers stay aligned while falling; the previous gravity system remains.
-- More forgiving swallowing based on visible horizontal footprint and hole center proximity.
-- Camera and drag movement unchanged.
+## New in v0.7
 
-## Deployment / caching
-Upload all files together. Hard-refresh Chrome if you still see the previous version; the version number on the main menu is the quickest confirmation. Script and stylesheet URLs have a v0.6 cache-busting query.
+- Eight distinct, dense object neighborhoods with clear gaps between them.
+- Gradual object-size progression: small near the start, medium farther away, and giant landmarks toward the corners.
+- Two specific color-and-shape collection objectives per level, displayed in the HUD.
+- All collected objects grow the hole, even if they aren't part of the objective.
+- Deliberate towers of 4–11 identical cubes or upright hexagonal prisms (same geometry, size, color); loose spheres/gems never intentionally stacked.
+- Preserved camera-following joystick controls, custom gravity, and collision logic from v0.6.
+- Version number shown on the home screen; CSS and JS references use v0.7 cache busting.
 
-## Local testing
-Run `python -m http.server 8000` and open http://localhost:8000. Three.js loads from a CDN.
+## Deploy
 
-Physics is intentionally approximate, not a full rigid-body engine.
+Upload the contents of this folder to a GitHub Pages subdirectory, such as `/games/void-garden/`. Visit its URL and refresh. The home screen should display **v0.7**.
+
+## Test locally
+
+From this directory run `python -m http.server 8000` and visit `http://localhost:8000`.
+
+Three.js is loaded from a public CDN, so an initial internet connection is required. Game logic runs entirely in the browser. Saved level and mode use localStorage.
+
+## Known limitations
+
+Physics is a lightweight approximation, not a full rigid-body engine. Target goals and placements are procedurally generated, not formally playtested for every seed. Large levels may be slower on older Android devices.

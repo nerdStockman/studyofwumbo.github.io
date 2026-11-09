@@ -1,5 +1,5 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js';
-const VERSION='0.6';
+const VERSION='0.7';
 const $=id=>document.getElementById(id),wrap=$('canvasWrap');
 $('version').textContent=`v${VERSION}`;
 const scene=new THREE.Scene();scene.background=new THREE.Color('#303b60');
@@ -14,6 +14,7 @@ const disk=new THREE.Mesh(new THREE.CircleGeometry(1,64),new THREE.MeshBasicMate
 const rim=new THREE.Mesh(new THREE.TorusGeometry(1,.105,12,64),new THREE.MeshStandardMaterial({color:0x83f5ce,emissive:0x217e70,emissiveIntensity:.35,metalness:.18,roughness:.28}));rim.rotation.x=-Math.PI/2;rim.position.y=.065;hole.add(rim);
 const palette=[0xffc77b,0xf794ba,0x8de6d4,0xb9a1fa,0xf9ed91,0x90c8ff];const items=[];
 let level=1,mode='timed',state='menu',remaining=90,goal=12,collected=0,radius=.8,last=0,save={};
+let targets=[],totalGood=0;const SHAPES=['box','hex','sphere','gem'];const SHAPE_NAMES={box:'cubes',hex:'prisms',sphere:'balls',gem:'gems'};
 try{save=JSON.parse(localStorage.getItem('voidGardenSave')||'{}')}catch{}level=Math.max(1,save.level||1);mode=save.mode==='relaxed'?'relaxed':'timed';
 // Dragging establishes a virtual joystick. Displacement from the initial touch controls velocity.
 const drag={active:false,id:null,startX:0,startY:0,dx:0,dy:0};
@@ -50,7 +51,7 @@ function makeItem(x,z,type,scale,color,options={}){
  }
  group.position.set(x,support?support.group.position.y+support.halfHeight+halfHeight+.006:halfHeight,z);
  scene.add(group);
- const item={group,type,shape,flat,scale,r,footprint,halfHeight,vy:0,falling:false,fallTime:0,dead:false,stackId:options.stackId??null,anchorX:support?support.anchorX:x,anchorZ:support?support.anchorZ:z};
+ const item={group,type,shape,colorIndex:options.colorIndex??0,flat,scale,r,footprint,halfHeight,vy:0,falling:false,fallTime:0,dead:false,stackId:options.stackId??null,anchorX:support?support.anchorX:x,anchorZ:support?support.anchorZ:z};
  items.push(item);return item;
 }
 let nextStackId=0;
@@ -61,47 +62,84 @@ function addPile(cx,cz,layers,colorIndex){
  const stackId=++nextStackId;
  let support=null;
  for(let layer=0;layer<layers;layer++){
-  support=makeItem(cx,cz,'good',scale,palette[colorIndex%palette.length],{shape,support,stackId});
+  support=makeItem(cx,cz,'good',scale,palette[colorIndex%palette.length],{shape,support,stackId,colorIndex});
  }
 }
+// Distinct neighborhoods of collectibles create short journeys between dense areas.
+// Each neighborhood has several identical-object towers, ground scatter and a size tier.
 function resetLevel(){
  for(const item of items)scene.remove(item.group);items.length=0;
- collected=0;radius=.78;remaining=mode==='timed'?Math.max(100,150-Math.floor(level/3)*4):Infinity;
- hole.position.set(0,0,0);drag.active=false;drag.dx=drag.dy=0;
- nextStackId=0;
- // Explicit tower grid, not opportunistic random stacking. Several towers are
- // visible from the starting location; no spheres, gems or bombs are placed atop them.
- const towers=[];
- const spacing=4.1;
- for(let gx=-4;gx<=4;gx++)for(let gz=-4;gz<=4;gz++){
-  if(Math.abs(gx)===4&&Math.abs(gz)===4)continue;
-  const x=gx*spacing+(Math.random()-.5)*.45;
-  const z=gz*spacing+(Math.random()-.5)*.45;
-  if(Math.hypot(x,z)<2.8)continue;
-  // Frequent tall columns; some deliberately taller landmarks.
-  if(Math.random()<.68){
-   const height=5+Math.floor(Math.random()*5)+(Math.random()<.14?3:0);
-   addPile(x,z,height,(gx+gz+20)%palette.length);
-   towers.push({x,z});
+ collected=0;radius=.78;remaining=mode==='timed'?Math.max(155,210-Math.floor(level/4)*5):Infinity;
+ hole.position.set(0,0,0);drag.active=false;drag.dx=drag.dy=0;nextStackId=0;
+ const clusters=[
+  {x:-8,z:-7,tier:0},{x:8,z:-7,tier:0},
+  {x:-9,z:7,tier:1},{x:9,z:8,tier:1},
+  {x:-17,z:0,tier:2},{x:17,z:0,tier:2},
+  {x:0,z:17,tier:3},{x:0,z:-17,tier:3}
+ ];
+ // Rotate the neighborhoods' visual identity per level, while retaining the
+ // same approachable progression from small objects to large landmarks.
+ const towerCenters=[];
+ for(let c=0;c<clusters.length;c++){
+  const area=clusters[c],colorIndex=(c+level)%palette.length;
+  const towerCount=area.tier===0?5:area.tier===1?5:4;
+  const baseScale=[.64,.86,1.12,1.48][area.tier];
+  for(let j=0;j<towerCount;j++){
+   const angle=2*Math.PI*j/towerCount+c*.47;
+   const dist=1.15+(j%2)*1.3;
+   const x=area.x+Math.cos(angle)*dist,z=area.z+Math.sin(angle)*dist;
+   if(Math.hypot(x,z)<2.5)continue;
+   const height=4+((j+c+level)%5)+(j===0?3:0);
+   // A pile contains only same-shaped, same-sized, same-colored flat tiers.
+   const shape=(c+j)%3===0?'hex':'box';
+   const scale=baseScale*(.86+(j%3)*.08);
+   const id=++nextStackId;let support=null;
+   for(let k=0;k<height;k++)support=makeItem(x,z,'good',scale,palette[colorIndex],{shape,support,stackId:id,colorIndex});
+   towerCenters.push({x,z});
+  }
+  // Ground scatter, concentrated in the same neighborhood. Non-flat objects
+  // are never stacked or deliberately positioned on top of a tower.
+  const looseCount=area.tier===0?24:area.tier===1?18:13;
+  for(let j=0;j<looseCount;j++){
+   const shape=SHAPES[(j+c)%4];
+   const scale=baseScale*(.7+(j%6)*.12);
+   let x,z,tries=0;
+   do{
+    const angle=Math.random()*Math.PI*2,dist=1.1+Math.sqrt(Math.random())*3.3;
+    x=THREE.MathUtils.clamp(area.x+Math.cos(angle)*dist,-WORLD+1.5,WORLD-1.5);
+    z=THREE.MathUtils.clamp(area.z+Math.sin(angle)*dist,-WORLD+1.5,WORLD-1.5);
+    tries++;
+   }while(tries<65&&(Math.hypot(x,z)<2.4||towerCenters.some(t=>Math.hypot(t.x-x,t.z-z)<1.55)));
+   if(Math.hypot(x,z)<2.4||towerCenters.some(t=>Math.hypot(t.x-x,t.z-z)<1.3))continue;
+   makeItem(x,z,'good',scale,palette[(colorIndex+j%3)%palette.length],{shape,colorIndex:(colorIndex+j%3)%palette.length});
   }
  }
- // Loose objects are separated from towers, so a sphere cannot land on a cube.
- function clearOfTowers(x,z,padding=1.8){return towers.every(t=>Math.hypot(x-t.x,z-t.z)>padding)}
- for(let i=0;i<85;i++){
-  let x,z,attempt=0;
-  do{x=(Math.random()-.5)*42;z=(Math.random()-.5)*42;attempt++}
-  while(attempt<80&&(!clearOfTowers(x,z,2.1)||Math.hypot(x,z)<1.8));
-  if(!clearOfTowers(x,z,1.6))continue;
-  const scale=i%9===0?1.7+Math.random()*.8:.65+Math.random()*.55;
-  makeItem(x,z,'good',scale,palette[i%palette.length],{shape:['sphere','gem','box','hex'][i%4]});
+ // A few giant landmark objects: unreachable early, rewarding after growth.
+ for(const [x,z] of [[-18,-17],[18,-17],[-18,17],[18,17]]){
+  makeItem(x,z,'good',2.7+Math.min(level,10)*.025,palette[(level+3)%palette.length],{shape:'box',colorIndex:(level+3)%palette.length});
  }
- for(let i=0;i<10+Math.min(level,7);i++){
-  let x,z,tries=0;
-  do{x=(Math.random()-.5)*42;z=(Math.random()-.5)*42;tries++}
-  while(tries<80&&(!clearOfTowers(x,z,2.2)||Math.hypot(x,z)<5));
-  if(clearOfTowers(x,z,1.8))makeItem(x,z,'bomb',.8,0xff4966);
+ // Bombs remain on the ground, mostly near medium/large neighborhoods.
+ for(let j=0;j<11+Math.min(level,7);j++){
+  const area=clusters[2+j%6];const angle=Math.random()*Math.PI*2;
+  const x=THREE.MathUtils.clamp(area.x+Math.cos(angle)*4.6,-WORLD+1,WORLD-1);
+  const z=THREE.MathUtils.clamp(area.z+Math.sin(angle)*4.6,-WORLD+1,WORLD-1);
+  if(towerCenters.every(t=>Math.hypot(t.x-x,t.z-z)>1.3))makeItem(x,z,'bomb',.8,0xff4966);
  }
- goal=Math.min(35+level*4,items.filter(i=>i.type==='good').length-8);updateHud();
+ // Select specific, abundant types from the small and medium neighborhoods.
+ // Quotas are always below the actual generated count, so levels are winnable.
+ const counts=new Map();
+ for(const item of items){if(item.type!=='good')continue;const key=`${item.shape}:${item.colorIndex}`;counts.set(key,(counts.get(key)||0)+1)}
+ const eligible=[...counts].filter(([key,n])=>n>=10).sort((a,b)=>b[1]-a[1]);
+ const chosen=[];
+ for(const entry of eligible){
+  if(chosen.length>=2)break;
+  if(chosen.length&&entry[0].split(':')[0]===chosen[0][0].split(':')[0])continue;
+  chosen.push(entry);
+ }
+ if(chosen.length<2)chosen.push(...eligible.filter(e=>!chosen.includes(e)).slice(0,2-chosen.length));
+ targets=chosen.map(([key,available],i)=>{const [shape,color]=key.split(':');return {key,shape,colorIndex:Number(color),needed:Math.min(available,Math.max(8,Math.floor(available*(i===0?.48:.38)))),count:0}});
+ goal=targets.reduce((sum,t)=>sum+t.needed,0);totalGood=items.filter(i=>i.type==='good').length;
+ updateHud();
 }
 function physicsStep(dt){
  const active=items.filter(i=>!i.dead&&!i.falling);
@@ -168,7 +206,14 @@ function physicsStep(dt){
   }
  }
 }
-function updateHud(){$('level').textContent=`Level ${level}`;$('modeBadge').textContent=mode.toUpperCase();$('timer').textContent=mode==='relaxed'?'∞':`${String(Math.floor(Math.max(0,remaining)/60)).padStart(2,'0')}:${String(Math.ceil(Math.max(0,remaining)%60)).padStart(2,'0')}`;$('goalText').textContent='Collect the goodies';$('progressText').textContent=`${collected} / ${goal}`;$('progressBar').style.width=`${Math.min(100,collected/goal*100)}%`;$('sizeText').textContent=`Hole size ${Math.round(radius/.78*10)/10}`}
+function updateHud(){
+ $('level').textContent=`Level ${level}`;$('modeBadge').textContent=mode.toUpperCase();
+ $('timer').textContent=mode==='relaxed'?'∞':`${String(Math.floor(Math.max(0,remaining)/60)).padStart(2,'0')}:${String(Math.ceil(Math.max(0,remaining)%60)).padStart(2,'0')}`;
+ $('goalText').textContent=targets.map(t=>`${t.count}/${t.needed} ${['gold','pink','mint','purple','yellow','blue'][t.colorIndex]} ${SHAPE_NAMES[t.shape]}`).join('  •  ')||'Collect the goodies';
+ $('progressText').textContent=`${collected} / ${goal}`;
+ $('progressBar').style.width=`${Math.min(100,collected/Math.max(1,goal)*100)}%`;
+ $('sizeText').textContent=`Hole size ${Math.round(radius/.78*10)/10}`;
+}
 function showPanel(title,description,button){state='menu';drag.active=false;$('panelTitle').textContent=title;$('panelText').textContent=description;$('playBtn').textContent=button;$('overlay').classList.add('visible');$('modePicker').style.display=title==='Little Void Garden'?'flex':'none'}
 function start(){if(state==='playing')return;state='playing';$('overlay').classList.remove('visible');resetLevel();last=performance.now()}
 function win(){level++;save={level,mode};localStorage.setItem('voidGardenSave',JSON.stringify(save));showPanel('Level complete! ✨','All those goodies, gone! Your hole is ready for a new challenge.','Next level')}
@@ -204,8 +249,11 @@ for(const item of items){
    else collected=Math.max(0,collected-2);
    radius=Math.max(.78,radius-.12);
   }else{
-   collected++;radius=Math.min(3.4,radius+.045);
-   if(collected>=goal){win();break}
+   const target=targets.find(t=>t.key===`${item.shape}:${item.colorIndex}`&&t.count<t.needed);
+   if(target){target.count++;collected++}
+   // All goodies contribute to growth, including non-target objects.
+   radius=Math.min(3.8,radius+.017);
+   if(goal>0&&collected>=goal){win();break}
   }
  }
 }
