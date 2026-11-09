@@ -1,19 +1,15 @@
-# Little Void Garden v0.4
+# Little Void Garden v0.5
 
-A static Three.js browser game. Upload the files in this folder to GitHub Pages; no server-side processing is needed.
+Static Three.js game for GitHub Pages. Upload the files in this folder; no backend required.
 
-## Changes in v0.4
+## Changes
+- More frequent and taller towers (4–8 blocks), made only from upright boxes or flat-ended hexagonal prisms.
+- Tower collision handling keeps tiers aligned while supported, but gravity lets them fall after lower blocks are swallowed.
+- More forgiving hole swallowing: tests the horizontal footprint instead of the object’s oversized spherical collision bound.
+- Reduced some collision calculations for mobile performance.
+- Camera, drag steering, timed/relaxed modes, and local progress saving remain unchanged.
 
-- Deliberately generated towers of 2–5 objects in most clusters.
-- Towers consist exclusively of upright boxes or flat-ended hexagonal prisms. Spheres, gems, and bombs never serve as tower blocks.
-- Planar collision handling for flat objects so towers settle with flat faces against each other instead of being separated by oversized spherical bounds.
-- Loose objects and large growth-gated objects remain scattered throughout the map.
-- Gravity, camera following, drag steering, timed/relaxed modes, and save data remain in place.
+## Local test
+Run `python -m http.server 8000` in this folder and open http://localhost:8000. On GitHub Pages, upload all files to a directory. Three.js is loaded from a CDN.
 
-## Running locally
-
-Run `python -m http.server 8000` in this directory, then open http://localhost:8000. On GitHub Pages, upload these files to a directory and navigate to its URL. Three.js loads from a public CDN, so an initial internet connection is required.
-
-## Note
-
-The collision system is still a lightweight approximation, not a complete rigid-body physics engine. Dense piles may still occasionally shift or jitter.
+The custom physics remains approximate. Very dense towers may still wobble or shift.

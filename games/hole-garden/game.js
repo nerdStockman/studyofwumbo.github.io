@@ -48,17 +48,19 @@ function makeItem(x,z,type,scale,color,options={}){
  }
  group.position.set(x,support?support.group.position.y+support.halfHeight+halfHeight+.006:halfHeight,z);
  scene.add(group);
- const item={group,type,shape,flat,scale,r,footprint,halfHeight,vy:0,falling:false,fallTime:0,dead:false};
+ const item={group,type,shape,flat,scale,r,footprint,halfHeight,vy:0,falling:false,fallTime:0,dead:false,stackId:options.stackId??null};
  items.push(item);return item;
 }
+let nextStackId=0;
 function addPile(cx,cz,layers,colorIndex){
  // Only upright boxes and flat-ended hexagonal prisms can support another item.
  // Each tier is built on its predecessor, never on a sphere or a faceted gem.
  const shape=Math.random()<.75?'box':'hex';
- const scale=.73+Math.random()*.55;
- let support=makeItem(cx,cz,'good',scale,palette[colorIndex%palette.length],{shape});
+ const scale=.68+Math.random()*.35;
+ const stackId=++nextStackId;
+ let support=makeItem(cx,cz,'good',scale,palette[colorIndex%palette.length],{shape,stackId});
  for(let layer=1;layer<layers;layer++){
-  support=makeItem(cx,cz,'good',scale,palette[(colorIndex+layer)%palette.length],{shape,support});
+  support=makeItem(cx,cz,'good',scale,palette[(colorIndex+layer)%palette.length],{shape,support,stackId});
  }
  return support;
 }
@@ -72,21 +74,23 @@ function resetLevel(){
   const a=i*2.39996,d=2.5+Math.sqrt(i)*.74;
   makeItem(Math.cos(a)*d,Math.sin(a)*d,'good',.64+Math.random()*.38,palette[i%palette.length]);
  }
- const clusters=12+Math.min(level,8);
+ // Deliberately build numerous tall towers, with a few larger obstacles and loose pieces.
+ // Towers are spread across the world so each camera-sized region contains several.
+ const clusters=16+Math.min(level,5);
  for(let c=0;c<clusters;c++){
-  const cx=(Math.random()-.5)*39,cz=(Math.random()-.5)*39;
-  if(c%4===0){
-   // Larger objects remain obstacles until the hole grows.
-   for(let i=0;i<3;i++)makeItem(cx+(Math.random()-.5)*4,cz+(Math.random()-.5)*4,'good',1.8+Math.random()*1.35,palette[(c+i)%palette.length]);
-  }else{
-   // Two or three intentional towers in every ordinary cluster.
-   const towers=2+(c%3===0?1:0);
-   for(let t=0;t<towers;t++){
-    const angle=t*Math.PI*2/towers;
-    addPile(cx+Math.cos(angle)*1.35,cz+Math.sin(angle)*1.35,2+Math.floor(Math.random()*4),c+t);
-   }
-   // Loose objects fill gaps around towers; these are never stacked.
-   for(let i=0;i<4;i++)makeItem(cx+(Math.random()-.5)*4.8,cz+(Math.random()-.5)*4.8,'good',.65+Math.random()*.65,palette[(c+i+3)%palette.length]);
+  const angle=c*2.399963, distance=5+Math.sqrt(c/clusters)*17;
+  const cx=Math.cos(angle)*distance+(Math.random()-.5)*2.2;
+  const cz=Math.sin(angle)*distance+(Math.random()-.5)*2.2;
+  const towers=2+(c%3===0?1:0);
+  for(let t=0;t<towers;t++){
+   const theta=t*Math.PI*2/towers+c*.7;
+   addPile(cx+Math.cos(theta)*1.5,cz+Math.sin(theta)*1.5,4+Math.floor(Math.random()*5),c+t);
+  }
+  if(c%3===0){
+   makeItem(cx+3.4,cz,'good',1.9+Math.random()*.85,palette[c%palette.length]);
+  }
+  for(let i=0;i<2;i++){
+   makeItem(cx+(Math.random()-.5)*5,cz+(Math.random()-.5)*5,'good',.65+Math.random()*.5,palette[(c+i+3)%palette.length]);
   }
  }
  for(let i=0;i<8+Math.min(level,8);i++){
@@ -101,7 +105,7 @@ function physicsStep(dt){
  const steps=Math.max(1,Math.ceil(dt/.016)),h=dt/steps;
  for(let step=0;step<steps;step++){
   for(const a of active){a.vy=Math.max(-16,a.vy-19*h);a.group.position.y+=a.vy*h}
-  for(let iteration=0;iteration<4;iteration++){
+  for(let iteration=0;iteration<3;iteration++){
    for(const a of active){
     if(a.group.position.y<a.halfHeight){a.group.position.y=a.halfHeight;if(a.vy<0)a.vy=0}
     a.group.position.x=THREE.MathUtils.clamp(a.group.position.x,-WORLD+a.r,WORLD-a.r);
@@ -110,9 +114,23 @@ function physicsStep(dt){
    for(let i=0;i<active.length;i++)for(let j=i+1;j<active.length;j++){
     const a=active[i],b=active[j];
     const dx=b.group.position.x-a.group.position.x,dy=b.group.position.y-a.group.position.y,dz=b.group.position.z-a.group.position.z;
+    if(Math.abs(dx)>a.r+b.r+0.2||Math.abs(dz)>a.r+b.r+0.2||Math.abs(dy)>a.r+b.r+0.2)continue;
     // Upright flat shapes have a planar contact: this prevents the sphere-bound
     // approximation from repelling perfectly stacked cubes sideways.
     if(a.flat&&b.flat){
+     // Tower tiers should stay vertically aligned until a lower tier is eaten.
+     // This prevents the collision solver from dismantling generated stacks.
+     if(a.stackId!==null&&a.stackId===b.stackId){
+      const vertical=a.halfHeight+b.halfHeight-Math.abs(dy);
+      if(vertical>0&&Math.abs(dx)<a.footprint+b.footprint&&Math.abs(dz)<a.footprint+b.footprint){
+       const sign=dy>=0?1:-1;
+       a.group.position.y-=sign*vertical*.5;
+       b.group.position.y+=sign*vertical*.5;
+       if(sign>0&&b.vy<0)b.vy=0;
+       if(sign<0&&a.vy<0)a.vy=0;
+      }
+      continue;
+     }
      const horizontalX=a.footprint+b.footprint-Math.abs(dx);
      const horizontalZ=a.footprint+b.footprint-Math.abs(dz);
      const vertical=a.halfHeight+b.halfHeight-Math.abs(dy);
@@ -174,7 +192,7 @@ for(const item of items){
  const dist=Math.hypot(item.group.position.x-hole.position.x,item.group.position.z-hole.position.z);
  // Swallow objects whose centers are over the opening and which fit its diameter.
  // Elevated items fall naturally as their supporting bodies are removed.
- if(dist<Math.max(.05,radius-item.r*.35)&&item.r<radius*.76&&item.group.position.y<item.halfHeight+.32){
+ if(dist<Math.max(.05,radius-item.footprint*.25)&&item.footprint<radius*1.02&&item.group.position.y<item.halfHeight+.32){
   item.falling=true;
   if(item.type==='bomb'){
    if(mode==='timed')remaining=Math.max(0,remaining-18);
