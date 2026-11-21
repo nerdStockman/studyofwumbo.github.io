@@ -206,3 +206,10 @@ input[type=range] {
 
 /* Location-selection guidance spans the complete controls card. */
 .controls-guide{grid-column:1/-1;margin:0 0 8px;padding:10px 13px;border:1px solid rgba(182,109,255,.24);border-radius:8px;background:rgba(182,109,255,.055);color:#cfc5e3;font-size:13px;line-height:1.55}
+
+/* Intro explanation */
+.intro-text p { margin: 0 0 12px; }
+.intro-text p:last-child { margin-bottom: 0; }
+.intro-effects { margin: 0 0 16px; padding-left: 24px; text-align: left; }
+.intro-effects li { margin: 5px 0; }
+.intro-effects strong { color: #e0c3ff; font-weight: 600; }
